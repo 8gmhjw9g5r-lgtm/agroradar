@@ -30,6 +30,13 @@ whose job is to view WMS/WMTS layers. Instead the page shows the same kind of la
 
 The layers are **for viewing only** and do not enter the index. With no date, GIBS serves the latest image (`default`).
 
+**The farmer never picks a layer (2026-11-15).** `backend/views.py` chooses up to 2 views per farm and the API returns
+them as `satellite_views` with reason codes; the results page shows them with what they show, why they were chosen and
+how to read them. Rules (**ASSUMPTION**, a UX choice): a plot's top risk scores 3 for its main view (water → soil
+moisture, heat → ground heat, erosion → satellite photo, greenness → greenness); each ticked priority and bare soil add 1;
+ties follow a fixed order. The page is a 4-question guided flow (plot, planting, land, priorities) and then results,
+each step with a "why we ask this" note.
+
 ## Soil moisture alert proposal (2026-11-15)
 An unsourced proposal for SMAP surface and root-zone moisture alerts (`docs/references/soil-moisture-alerts-source.pdf`) is
 translated and evaluated in `docs/SOIL_MOISTURE_ALERTS.md`. Nothing from it is in the model yet. Adopted as next steps:

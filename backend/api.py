@@ -11,6 +11,7 @@ from backend import satellite
 from backend.agent import gemini
 from backend.clients import extras, power
 from backend.i18n import lang_of, t
+from backend.views import choose_views
 
 CROPS = ("maize", "bean", "green_manure")
 
@@ -262,6 +263,7 @@ def analyze_farm(farm, today=None, with_agent=True):
     out = {"farm_id": farm.get("farm_id"), "lang": lang, "plots": plots, "ranking": ranking, "warnings": warnings,
            "current_enso": oni["latest"] | {"phase": M.enso_phase(oni["latest"]["oni"])} if oni else None,
            "forecast_7d": extras.forecast(plots[0]["lat"], plots[0]["lon"]),
+           "satellite_views": choose_views(farm, plots),
            "explanation": None, "agent_warnings": []}
     key = os.environ.get("GEMINI_API_KEY")
     if with_agent and key:
@@ -280,7 +282,7 @@ def analyze_farm(farm, today=None, with_agent=True):
 from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 
-app = FastAPI(title="Dry Corridor crop risk")
+app = FastAPI(title="AgroRadar")
 
 
 @app.post("/api/farm")

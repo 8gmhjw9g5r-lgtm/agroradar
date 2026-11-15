@@ -342,6 +342,27 @@ class Layer12Graph(unittest.TestCase):
         self.assertTrue(any("words" in x for x in gemini.verify("word " * 210, {}, "en")))
 
 
+class SatelliteViews(unittest.TestCase):
+    def test_rules(self):
+        from backend.views import choose_views
+        farm = lambda pr, cover=None: {"plots": [{"priorities": pr, "current_cover": cover}]}
+        water = choose_views(farm(["water"]), [{"top_variables": ["dry_spell", "heat"]}])
+        self.assertEqual(water[0], {"view": "soil_moisture", "reasons": ["top_water", "priority_water"]})
+        self.assertEqual(water[1]["view"], "ground_heat")  # a top risk beats a ticked priority
+
+        heat = choose_views(farm([]), [{"top_variables": ["heat"]}])
+        self.assertEqual(heat[0]["view"], "ground_heat")
+        erosion = choose_views(farm(["erosion"], "bare_soil"), [{"top_variables": []}])
+        self.assertEqual(erosion[0]["view"], "satellite_photo")
+        self.assertEqual(choose_views(farm([]), [{"top_variables": []}])[0]["reasons"], ["default"])
+
+    def test_in_api(self):
+        out = api.analyze_farm(FARM, with_agent=False)
+        self.assertTrue(1 <= len(out["satellite_views"]) <= 2)
+        from backend.views import VIEWS
+        self.assertTrue(all(v["view"] in VIEWS and v["reasons"] for v in out["satellite_views"]))
+
+
 class NoKeys(unittest.TestCase):
     def test_repo_has_no_keys(self):
         pattern = re.compile(r"AIza[0-9A-Za-z_\-]{35}|sk-[A-Za-z0-9]{20,}|GEMINI_API_KEY[ \t]*=[ \t]*\S+")

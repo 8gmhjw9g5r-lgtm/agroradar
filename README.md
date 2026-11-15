@@ -1,4 +1,4 @@
-# Milpa crop risk — MVP Space Apps 2026
+# AgroRadar — MVP Space Apps 2026
 
 The farmer marks a plot on the map, says what they will plant and when, and gets, for three rotations
 (maize after maize, maize with beans, maize with green manure), a success index from 0 to 100 with its range,
@@ -71,10 +71,11 @@ backend/features.py     rain onset, dry spell, VPD, ET0, RUSLE
 backend/models.py       Wilson, analogs, gamma, ENSO, bootstrap index, trend, AUC
 backend/satellite.py    preloaded AppEEARS reader
 backend/i18n.py         Spanish and English messages
+backend/views.py        picks which satellite views to show, with reasons
 backend/agent/          prompts (es, en) and Gemini call with a rule checker
 backend/api.py          POST /api/farm endpoint and the page
 backend/validate.py     leave-one-year-out and MAG calibration
-frontend/index.html     map with GIBS layers, form and cards (ES/EN)
+frontend/index.html     guided 4-step flow, results with satellite views (ES/EN)
 tests/test_mvp.py       the 12 layers of the test plan
 docs/                   DECISIONS.md (sources and assumptions) and ROADMAP.md
 ```
