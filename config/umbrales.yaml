@@ -1,0 +1,89 @@
+# Todo valor de este archivo es SUPUESTO hasta que un técnico lo valide,
+# salvo los que tienen fuente en docs/DECISIONES.md.
+
+validacion:
+  lat: [12.8, 14.5]          # supuesto: límites aproximados de El Salvador
+  lon: [-90.2, -87.6]
+  max_parcelas: 10
+  meses_fecha_siembra: 12
+
+historia_inicio: "1991-01-01"
+normal: [1991, 2020]
+
+inicio_lluvias:
+  desde: [5, 1]              # mes, día
+  hasta: [8, 31]
+  mm_3_dias: 20
+  racha_seca_dias: 7
+  ventana_dias: 21
+dia_seco_mm: 1.0
+inicio_tardio_dias: 15       # inicio tardío = más de 15 días después de la mediana
+
+canicula:
+  ventana: [[7, 15], [8, 31]]
+  umbral_dias: 10
+calor:
+  t_max_c: 35
+  umbral_dias: 3
+estres_hidrico:
+  bloque_dias: 10
+  cociente_riesgo: 0.5
+anomalia_lluvia_sd: -1
+
+cultivos:                    # ciclo y floración en días después de siembra
+  maiz: {ciclo_dias: 120, floracion: [55, 75]}
+  frijol: {ciclo_dias: 75, floracion: [35, 50]}
+  abono_verde: {ciclo_dias: 90, floracion: [45, 60]}
+epoca_por_mes:               # si falta epoca, se deduce del mes de siembra
+  primera: [1, 2, 3, 4, 5, 6, 7]
+  postrera: [8, 9, 10, 11, 12]
+
+satelite:
+  ndvi_suelo_desnudo: 0.3
+  min_validas: 0.30
+  zonas_piloto:              # supuesto: puntos del Corredor Seco a validar
+    # calibracion: series de rendimiento del MAG (columna epoca del CSV) y la época que modela cada una.
+    # Solo series donde el rendimiento corresponde a la época modelada (ver DECISIONES.md).
+    san_miguel: {lat: 13.48, lon: -88.18, radio_km: 15, departamento: San Miguel,
+                 calibracion: [{serie: postrera, epoca: postrera}, {serie: primera, epoca: primera}]}
+    la_union: {lat: 13.34, lon: -87.84, radio_km: 15, departamento: La Unión,
+               calibracion: [{serie: postrera, epoca: postrera}]}
+    chalatenango: {lat: 14.04, lon: -88.94, radio_km: 15, departamento: Chalatenango,
+                   calibracion: [{serie: total, epoca: primera}]}
+
+rusle:
+  K_defecto: 0.03            # t·ha·h/(ha·MJ·mm)
+  pendiente_defecto_pct: 10
+  C_por_cobertura: {suelo_desnudo: 0.45, rastrojo: 0.2, abono_verde: 0.1}
+  C_defecto: 0.3
+  erosion_ref: 200           # índice A considerado "riesgo 1"; solo relativo
+
+nitrogeno:
+  N_ref_g_kg: 3.0            # N total >= 3 g/kg -> riesgo 0
+  fijacion_kg_ha: {maiz: 0, frijol: 40, abono_verde: 80}
+  extraccion_kg_ha: {maiz: 60, frijol: 40, abono_verde: 0}
+  umbral_direccion_kg_ha: 20
+
+modelo:
+  bootstrap: 1000
+  semilla: 42
+  z80: 1.2816
+  min_analogos: 8
+  analogos_inicio_dias: 10
+  analogos_lluvia_frac: 0.25
+  peso_prioridad: 2.0
+  peso_nitrogeno_sin_analisis: 0.25
+  auc_publicable: 0.70
+  auc_minimo: 0.60
+  enso_umbral_oni: 0.5
+
+variables_por_prioridad:
+  agua: [canicula, calor, humedad]
+  erosion: [erosion]
+  nitrogeno: [nitrogeno, verdor]
+  mercado: []                # sin datos de mercado en el MVP
+
+rotaciones:                  # E < 1 reduce el riesgo; ver DECISIONES.md
+  maiz_maiz: {cultivos: [maiz, maiz], base: true, efectos: {}}
+  maiz_frijol: {cultivos: [maiz, frijol], efectos: {nitrogeno: 0.85, erosion: 0.9}}
+  maiz_abono_verde: {cultivos: [maiz, abono_verde], efectos: {nitrogeno: 0.6, erosion: 0.6, humedad: 0.9}}

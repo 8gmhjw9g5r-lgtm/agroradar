@@ -1,0 +1,20 @@
+# Grafo fijo de relaciones causales. El agente solo puede recorrer estas aristas.
+# Cada arista necesita fuente antes de publicarse (ver docs/DECISIONES.md).
+aristas:
+  - {causa: lluvia_baja, efecto: humedad_suelo_baja, direccion: baja, evidencia: A, nota: "medido en lluvia; la humedad es inferida"}
+  - {causa: humedad_suelo_baja, efecto: estres_hidrico, direccion: sube, evidencia: B}
+  - {causa: suelo_desnudo_lluvia_intensa, efecto: erosion_alta, direccion: sube, evidencia: B}
+  - {causa: erosion_alta, efecto: menos_materia_organica_y_nitrogeno, direccion: baja, evidencia: C}
+  - {causa: leguminosa_o_abono_verde, efecto: mas_nitrogeno, direccion: sube, evidencia: C, nota: "respaldo de CRS en El Salvador"}
+  - {causa: calor_floracion, efecto: menor_cuajado_y_rendimiento, direccion: baja, evidencia: B}
+  - {causa: fase_nino, efecto: canicula_larga, direccion: sube, evidencia: B, nota: "a validar con el modelo 4"}
+  - {causa: canicula_larga, efecto: lluvia_baja, direccion: sube, evidencia: A}
+
+# Cadena que explica cada variable del modelo
+cadenas:
+  canicula: [canicula_larga, lluvia_baja, humedad_suelo_baja, estres_hidrico]
+  humedad: [lluvia_baja, humedad_suelo_baja, estres_hidrico]
+  calor: [calor_floracion, menor_cuajado_y_rendimiento]
+  erosion: [suelo_desnudo_lluvia_intensa, erosion_alta, menos_materia_organica_y_nitrogeno]
+  nitrogeno: [leguminosa_o_abono_verde, mas_nitrogeno]
+  # verdor: sin arista en el borrador; el agente lo nombra sin cadena causal

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riesgo de la milpa</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --tierra:#6b4f2a; --milpa:#2f6b3a; --fondo:#f6f3ec; --borde:#d9d2c3; --texto:#2a2620; --alerta:#a33; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.45 system-ui, sans-serif; background:var(--fondo); color:var(--texto); }
+  header { padding:12px 16px; background:var(--milpa); color:#fff; }
+  header h1 { margin:0; font-size:20px; } header p { margin:2px 0 0; opacity:.85; font-size:13px; }
+  main { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; padding:16px; }
+  @media (max-width:800px) { main { grid-template-columns:1fr; } }
+  #mapa { height:380px; border:1px solid var(--borde); border-radius:8px; }
+  fieldset { border:1px solid var(--borde); border-radius:8px; margin:12px 0; background:#fff; }
+  label { display:block; margin:6px 0; } select, input { font:inherit; padding:4px; }
+  button { font:inherit; padding:8px 16px; background:var(--milpa); color:#fff; border:0; border-radius:6px; cursor:pointer; }
+  button:disabled { opacity:.5; }
+  .card { background:#fff; border:1px solid var(--borde); border-radius:8px; padding:12px; margin-bottom:12px; }
+  .rot { display:grid; grid-template-columns:150px 1fr 90px; align-items:center; gap:8px; margin:4px 0; }
+  .barra { position:relative; height:14px; background:#eee; border-radius:7px; }
+  .rango { position:absolute; height:100%; background:#bcd8c0; border-radius:7px; }
+  .punto { position:absolute; top:-3px; width:4px; height:20px; background:var(--milpa); }
+  .ev { display:inline-block; width:20px; text-align:center; border-radius:4px; color:#fff; font-weight:bold; font-size:12px; }
+  .evA { background:#2f6b3a; } .evB { background:#b58a1b; } .evC { background:#888; }
+  .aviso { color:var(--alerta); } small { color:#666; }
+  table { border-collapse:collapse; width:100%; font-size:13px; } td, th { padding:3px 6px; border-bottom:1px solid #eee; text-align:left; }
+  #explicacion { white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<header><h1>Riesgo de la milpa</h1><p>Índice de éxito por rotación con datos de NASA POWER y satélite. Apoya su criterio; no lo sustituye.</p></header>
+<main>
+<section>
+  <div id="mapa"></div>
+  <small>Toque el mapa para marcar cada parcela (máximo 10).</small>
+  <div id="parcelas"></div>
+  <fieldset><legend>Su siembra</legend>
+    <label>Cultivo actual <select id="cultivo_actual"><option value="maiz">Maíz</option><option value="frijol">Frijol</option><option value="ninguno">Ninguno</option></select></label>
+    <label>Cultivo planeado <select id="cultivo_planeado"><option value="maiz">Maíz</option><option value="frijol">Frijol</option><option value="abono_verde">Abono verde</option></select></label>
+    <label>Fecha de siembra <input type="date" id="fecha_siembra"></label>
+    <label>Época <select id="epoca"><option value="">Deducir de la fecha</option><option value="primera">Primera</option><option value="postrera">Postrera</option></select></label>
+    <label>Cobertura del suelo <select id="cobertura_actual"><option value="">No sé</option><option value="rastrojo">Rastrojo</option><option value="suelo_desnudo">Suelo desnudo</option><option value="abono_verde">Abono verde</option></select></label>
+    <label>Pendiente (%) si la conoce <input type="number" id="pendiente_pct" min="0" max="100"></label>
+    <label>Fase de El Niño a considerar <select id="fase_enso"><option value="">No filtrar</option><option value="nino">El Niño</option><option value="nina">La Niña</option><option value="neutral">Neutral</option></select></label>
+    <div>Me preocupa:
+      <label><input type="checkbox" name="prio" value="agua" checked> Agua</label>
+      <label><input type="checkbox" name="prio" value="erosion"> Erosión</label>
+      <label><input type="checkbox" name="prio" value="nitrogeno"> Nitrógeno</label>
+    </div>
+  </fieldset>
+  <button id="calcular" disabled>Calcular</button> <span id="estado"></span>
+</section>
+<section id="resultado"></section>
+</main>
+<script>
+const mapa = L.map('mapa').setView([13.7, -88.5], 8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(mapa);
+const parcelas = [];
+const $ = id => document.getElementById(id);
+const hoy = new Date(); $('fecha_siembra').value = `${hoy.getFullYear() + (hoy.getMonth() > 6 ? 1 : 0)}-05-25`;
+
+mapa.on('click', e => {
+  if (parcelas.length >= 10) return;
+  const id = 'p' + (parcelas.length + 1);
+  L.marker(e.latlng).addTo(mapa).bindTooltip(id, {permanent: true});
+  parcelas.push({id, lat: +e.latlng.lat.toFixed(5), lon: +e.latlng.lng.toFixed(5), area: 1});
+  pintarParcelas();
+});
+function pintarParcelas() {
+  $('parcelas').innerHTML = parcelas.map((p, i) =>
+    `<div>${p.id} (${p.lat}, ${p.lon}) — área <input type="number" step="0.1" min="0" value="${p.area}" style="width:70px" onchange="parcelas[${i}].area=+this.value"> mz</div>`).join('');
+  $('calcular').disabled = !parcelas.length;
+}
+
+const NOMBRES = {maiz_maiz: 'Maíz tras maíz', maiz_frijol: 'Maíz con frijol', maiz_abono_verde: 'Maíz con abono verde',
+  canicula: 'Canícula', calor: 'Calor en floración', humedad: 'Falta de agua', erosion: 'Erosión', verdor: 'Verdor', nitrogeno: 'Nitrógeno',
+  canicula_larga: 'Canícula larga', inicio_tardio: 'Lluvias tardías', calor_floracion: 'Calor en floración', deficit_lluvia: 'Poca lluvia en el ciclo', anomalia_lluvia: 'Lluvia muy baja'};
+const n = k => NOMBRES[k] || k;
+const ev = e => `<span class="ev ev${e}" title="Evidencia ${e}">${e}</span>`;
+
+$('calcular').onclick = async () => {
+  const prios = [...document.querySelectorAll('[name=prio]:checked')].map(x => x.value);
+  const finca = {finca_id: 'f' + Date.now(), fase_enso: $('fase_enso').value || null, parcelas: parcelas.map(p => {
+    const x = {parcela_id: p.id, geometria: {type: 'Point', coordinates: [p.lon, p.lat]}, area_mz: p.area,
+      cultivo_actual: $('cultivo_actual').value, cultivo_planeado: $('cultivo_planeado').value,
+      fecha_siembra: $('fecha_siembra').value, prioridades: prios};
+    if ($('epoca').value) x.epoca = $('epoca').value;
+    if ($('cobertura_actual').value) x.cobertura_actual = $('cobertura_actual').value;
+    if ($('pendiente_pct').value) x.pendiente_pct = +$('pendiente_pct').value;
+    return x; })};
+  $('calcular').disabled = true;
+  $('estado').textContent = 'Calculando… la primera vez descarga 35 años de clima de NASA y puede tardar.';
+  try {
+    const r = await fetch('/api/finca', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(finca)});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail?.aviso || r.statusText);
+    pintar(d); $('estado').textContent = '';
+  } catch (e) { $('estado').innerHTML = `<span class="aviso">${e.message}</span>`; }
+  $('calcular').disabled = false;
+};
+
+function pintar(d) {
+  let h = d.avisos.map(a => `<p class="aviso">${a}</p>`).join('');
+  if (d.enso_actual) h += `<p><small>ENSO actual: ${d.enso_actual.fase} (ONI ${d.enso_actual.estacion} ${d.enso_actual.anio} = ${d.enso_actual.oni}, NOAA)</small></p>`;
+  if (d.explicacion) h += `<div class="card"><b>Explicación</b><div id="explicacion"></div>${d.avisos_agente.map(a => `<p class="aviso"><small>${a}</small></p>`).join('')}</div>`;
+  else h += d.avisos_agente.map(a => `<p><small>${a}</small></p>`).join('');
+  h += `<div class="card"><b>Parcelas por prioridad de atención</b><ol>${d.ranking.map(r => `<li>${r.parcela_id} (${r.prioridad}) — pesan más: ${r.por_que.map(n).join(' y ')}</li>`).join('')}</ol></div>`;
+  for (const p of d.parcelas) {
+    h += `<div class="card"><b>Parcela ${p.parcela_id}</b> <small>${p.epoca} · ${p.n_anios_indice} años${p.fase_enso_filtrada ? ' (solo años ' + p.fase_enso_filtrada + ')' : ''} · confianza: ${p.nivel_confianza}</small>`;
+    h += `<p><small>Éxito = ${p.definicion_exito}.</small></p>`;
+    for (const r of p.rotaciones) {
+      h += `<div class="rot"><span>${n(r.id)}</span>`;
+      h += r.indice == null ? `<span><small>sin índice publicable</small></span>`
+        : `<div class="barra"><div class="rango" style="left:${r.rango_80[0]}%;width:${r.rango_80[1] - r.rango_80[0]}%"></div><div class="punto" style="left:${r.indice}%"></div></div>`;
+      h += `<span>${r.indice == null ? '' : `<b>${r.indice}</b> <small>${r.rango_80[0]}–${r.rango_80[1]}</small>`}</span></div>`;
+    }
+    h += `<table><tr><th>Riesgo</th><th>Prob.</th><th>Rango 80%</th><th>Años</th></tr>${p.riesgos.map(r =>
+      `<tr><td>${ev(r.evidencia)} ${n(r.evento)}</td><td>${Math.round(r.p * 100)}%</td><td>${Math.round(r.ic80[0] * 100)}–${Math.round(r.ic80[1] * 100)}%</td><td>${r.k} de ${r.n}</td></tr>`).join('')}</table>`;
+    h += `<p>${p.contribuciones.map(c => `${ev(c.evidencia)} ${n(c.variable)}${c.aporte_al_indice != null ? ' ' + c.aporte_al_indice : ''}`).join(' · ')}</p>`;
+    const t = p.tendencia_erosion, pt = p.perfil_terreno;
+    if (t) h += `<p>Erosión a ${t.anios} años: <b>${t.direccion}</b> <small>(${t.banda_80[0]}–${t.banda_80[1]} veces el nivel actual; ${t.nota})</small></p>`;
+    h += `<p><small>Clima ${pt.clima.anios}: ${pt.clima.lluvia_anual_media_mm} mm/año, lluvias empiezan ~${pt.clima.inicio_lluvias_mediano}. Pendiente ${pt.pendiente_pct}% (${pt.pendiente_fuente}).</small></p>`;
+    if (p.datos_faltantes.length) h += `<p><small>Faltan: ${p.datos_faltantes.join(', ')}</small></p>`;
+    h += `<details><summary><small>Supuestos usados</small></summary><small>${p.supuestos_usados.join(', ')}</small></details></div>`;
+  }
+  $('resultado').innerHTML = h;
+  if (d.explicacion) $('explicacion').textContent = d.explicacion;
+}
+</script>
+</body>
+</html>

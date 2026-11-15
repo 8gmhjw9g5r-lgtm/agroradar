@@ -1,0 +1,89 @@
+{
+ "zonas": {
+  "san_miguel": {
+   "canicula_larga": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_ajuste_analogos": 0.0804
+   },
+   "inicio_tardio": {
+    "brier_base": 0.1073,
+    "n": 35
+   },
+   "calor_floracion": {
+    "brier_base": 0.2163,
+    "n": 35
+   },
+   "deficit_lluvia": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "anomalia_lluvia": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "inicio_2025": {
+    "dia_del_anio": 150,
+    "mediana_historica": 136.5,
+    "mas_tardio_que_mediana": true
+   }
+  },
+  "la_union": {
+   "canicula_larga": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_ajuste_analogos": 0.0804
+   },
+   "inicio_tardio": {
+    "brier_base": 0.1073,
+    "n": 35
+   },
+   "calor_floracion": {
+    "brier_base": 0.2163,
+    "n": 35
+   },
+   "deficit_lluvia": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "anomalia_lluvia": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "inicio_2025": {
+    "dia_del_anio": 150,
+    "mediana_historica": 136.5,
+    "mas_tardio_que_mediana": true
+   }
+  },
+  "chalatenango": {
+   "canicula_larga": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_ajuste_analogos": 0.0808
+   },
+   "inicio_tardio": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "calor_floracion": {
+    "brier_base": 0.0571,
+    "n": 35
+   },
+   "deficit_lluvia": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "anomalia_lluvia": {
+    "brier_base": 0.1298,
+    "n": 35
+   },
+   "inicio_2025": {
+    "dia_del_anio": 150,
+    "mediana_historica": 140,
+    "mas_tardio_que_mediana": true
+   }
+  }
+ },
+ "ajuste_temporada_activo": true
+}
