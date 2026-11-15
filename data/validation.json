@@ -1,0 +1,89 @@
+{
+ "zones": {
+  "san_miguel": {
+   "long_dry_spell": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_analog_adjustment": 0.0804
+   },
+   "late_onset": {
+    "brier_base": 0.1073,
+    "n": 35
+   },
+   "flowering_heat": {
+    "brier_base": 0.2163,
+    "n": 35
+   },
+   "rain_deficit": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "rain_anomaly": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "onset_2025": {
+    "day_of_year": 150,
+    "historical_median": 136.5,
+    "later_than_median": true
+   }
+  },
+  "la_union": {
+   "long_dry_spell": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_analog_adjustment": 0.0804
+   },
+   "late_onset": {
+    "brier_base": 0.1073,
+    "n": 35
+   },
+   "flowering_heat": {
+    "brier_base": 0.2163,
+    "n": 35
+   },
+   "rain_deficit": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "rain_anomaly": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "onset_2025": {
+    "day_of_year": 150,
+    "historical_median": 136.5,
+    "later_than_median": true
+   }
+  },
+  "chalatenango": {
+   "long_dry_spell": {
+    "brier_base": 0.083,
+    "n": 35,
+    "brier_analog_adjustment": 0.0808
+   },
+   "late_onset": {
+    "brier_base": 0.1505,
+    "n": 35
+   },
+   "flowering_heat": {
+    "brier_base": 0.0571,
+    "n": 35
+   },
+   "rain_deficit": {
+    "brier_base": 0.1869,
+    "n": 35
+   },
+   "rain_anomaly": {
+    "brier_base": 0.1298,
+    "n": 35
+   },
+   "onset_2025": {
+    "day_of_year": 150,
+    "historical_median": 140,
+    "later_than_median": true
+   }
+  }
+ },
+ "season_adjustment_active": true
+}

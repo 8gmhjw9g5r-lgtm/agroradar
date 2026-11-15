@@ -1,0 +1,75 @@
+{
+ "auc": 0.669,
+ "ci80": [
+  0.543,
+  0.788
+ ],
+ "n": 50,
+ "by_series": {
+  "San Miguel / postrera": {
+   "auc": 0.381,
+   "n": 10,
+   "failures": 3
+  },
+  "San Miguel / primera": {
+   "auc": 1.0,
+   "n": 10,
+   "failures": 3
+  },
+  "La Unión / postrera": {
+   "auc": 0.286,
+   "n": 10,
+   "failures": 3
+  },
+  "Chalatenango / total": {
+   "auc": 0.917,
+   "n": 20,
+   "failures": 6
+  }
+ },
+ "mean_auc_by_series": 0.646,
+ "by_season": {
+  "postrera": {
+   "auc": 0.333,
+   "ci80": [
+    0.125,
+    0.567
+   ],
+   "n": 20,
+   "level": "not_publishable"
+  },
+  "primera": {
+   "auc": 0.899,
+   "ci80": [
+    0.807,
+    0.989
+   ],
+   "n": 30,
+   "level": "normal"
+  }
+ },
+ "table": [
+  {
+   "mean_score": 0.615,
+   "observed_success": 0.417,
+   "n": 12
+  },
+  {
+   "mean_score": 0.737,
+   "observed_success": 0.833,
+   "n": 12
+  },
+  {
+   "mean_score": 0.777,
+   "observed_success": 0.833,
+   "n": 12
+  },
+  {
+   "mean_score": 0.801,
+   "observed_success": 0.714,
+   "n": 14
+  }
+ ],
+ "level": "low_confidence",
+ "source": "MAG, Anuarios de Estadísticas Agropecuarias 2001-02 to 2022-23 (missing 2007-08 and 2008-09); maize yield by department, total or by season (2013-2022)"
+}

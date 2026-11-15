@@ -1,66 +1,82 @@
-# Riesgo de la milpa — MVP Space Apps 2026
+# Milpa crop risk — MVP Space Apps 2026
 
-El agricultor marca su parcela en el mapa, dice qué siembra y cuándo, y recibe para tres rotaciones
-(maíz tras maíz, maíz con frijol, maíz con abono verde) un índice de éxito de 0 a 100 con su rango,
-los riesgos por variable con su probabilidad e intervalo, y una explicación en español sencillo.
+The farmer marks a plot on the map, says what they will plant and when, and gets, for three rotations
+(maize after maize, maize with beans, maize with green manure), a success index from 0 to 100 with its range,
+the risk of each variable with its probability and interval, and an explanation in plain language.
 
-**Éxito** = rendimiento sobre el percentil 25 histórico de la zona. El índice nunca sale sin rango, y no
-se publica hasta calibrarlo contra los rendimientos del MAG (ver `docs/DECISIONES.md`).
+**Success** = yield above the zone's historical 25th percentile. The index never comes out without a range, and it is
+not published until it is calibrated against MAG yields (see `docs/DECISIONS.md`).
 
-## Correr
+The page is in Spanish by default, for farmers in El Salvador, with an ES/EN switch. Code, data and docs are in English.
+
+## Run
 
 ```bash
-pip install fastapi uvicorn pyyaml httpx
-cp .env.example .env        # poner su GEMINI_API_KEY (opcional: sin ella no hay texto del agente)
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # add your GEMINI_API_KEY (optional: without it there is no agent text)
 uvicorn backend.api:app --reload
 ```
-Abrir http://localhost:8000.
+Open http://localhost:8000.
 
-## Pruebas
+## Tests
 
 ```bash
 python -m unittest -v tests.test_mvp
 ```
-Las capas 5, 6 y 8 usan POWER real (la primera vez descargan unos 13 000 días por celda y luego leen de `data/cache`).
-La capa 7 con Gemini real solo corre si hay `GEMINI_API_KEY`.
+Layers 5, 6 and 8 use real POWER data (the first time they download about 13,000 days per cell and then read from `data/cache`).
+Layer 7 with real Gemini only runs if `GEMINI_API_KEY` is set.
 
-## Validación y calibración
-
-```bash
-python -m backend.validar
-```
-Deja un año fuera, calcula el Brier y escribe `data/validacion.json`.
+## Validation and calibration
 
 ```bash
-python -m backend.validar mag
+python -m backend.validate
 ```
-Calcula el AUC contra los rendimientos departamentales del MAG (`data/mag_rendimientos.csv`, 2001-2022) y escribe `data/calibracion.json`. Resultado actual: primera AUC 0.90 (se publica); postrera AUC 0.33 (no se publica, solo riesgos). Ver `docs/DECISIONES.md`.
+Leaves one year out, computes the Brier score and writes `data/validation.json`.
 
-## Datos declarados
+```bash
+python -m backend.validate mag
+```
+Computes the AUC against MAG department yields (`data/mag_yields.csv`, 2001-2022) and writes `data/calibration.json`. Current result: primera AUC 0.90 (published); postrera AUC 0.33 (not published, risks only). See `docs/DECISIONS.md`.
 
-| Fuente | Uso | Acceso |
+## API
+
+`POST /api/farm` with:
+
+```json
+{"lang": "es", "enso_phase": null, "plots": [{"plot_id": "p1", "geometry": {"type": "Point", "coordinates": [-88.18, 13.48]},
+  "planned_crop": "maize", "planting_date": "2026-05-25", "season": "primera", "priorities": ["water"]}]}
+```
+`lang` is `es` (default) or `en`; it only changes the texts. Crops: `maize`, `bean`, `green_manure`. Priorities: `water`, `erosion`, `nitrogen`.
+
+## Declared data
+
+| Source | Use | Access |
 |---|---|---|
-| NASA POWER (diario, MERRA-2) | Lluvia, temperaturas y humedad relativa de 1991 al presente | Sin llave |
-| NASA AppEEARS (SMAP, NASADEM, HLS, MODIS) | Humedad, pendiente y verdor; precargados por zona piloto | Cuenta Earthdata |
-| NOAA CPC ONI | Fase de El Niño por año | Sin llave |
-| ISRIC SoilGrids | Textura, carbono y nitrógeno (evidencia C) | Sin llave |
-| Open-Meteo | Pronóstico de 7 días | Sin llave, uso no comercial |
-| Google Gemini | Explicación en texto | Llave de cada usuario en `.env` |
+| NASA POWER (daily, MERRA-2) | Rain, temperatures and relative humidity from 1991 to today | No key |
+| NASA AppEEARS (SMAP, NASADEM, HLS, MODIS) | Moisture, slope and greenness; preloaded per pilot zone | Earthdata account |
+| NASA GIBS (MODIS, GPM IMERG, SMAP) | Satellite layers on the map, for viewing only | No key |
+| NOAA CPC ONI | El Niño phase per year | No key |
+| ISRIC SoilGrids | Texture, carbon and nitrogen (evidence C) | No key |
+| Open-Meteo | 7-day forecast | No key, non-commercial use |
+| Google Gemini | Text explanation | Each user's key in `.env` |
 
-## Estructura
+## Structure
 
 ```
-config/umbrales.yaml   umbrales y tablas (todo supuesto salvo lo citado en DECISIONES.md)
-config/grafo.yaml      relaciones causales que el agente puede usar
-backend/clients/       POWER con caché; Open-Meteo, SoilGrids, ONI
-backend/features.py    inicio de lluvias, racha seca, VPD, ET0, RUSLE
-backend/models.py      Wilson, análogos, gamma, ENSO, índice por bootstrap, tendencia, AUC
-backend/satelite.py    lector de AppEEARS precargado
-backend/agent/         prompt y llamada a Gemini con verificador de reglas
-backend/api.py         endpoint POST /api/finca y la página
-backend/validar.py     dejar un año fuera y calibración MAG
-frontend/index.html    mapa, formulario y tarjetas
-tests/test_mvp.py      las 12 capas del plan de pruebas
+config/thresholds.yaml  thresholds and tables (all assumptions except those cited in DECISIONS.md)
+config/graph.yaml       causal relationships the agent may use
+backend/clients/        POWER with cache; Open-Meteo, SoilGrids, ONI
+backend/features.py     rain onset, dry spell, VPD, ET0, RUSLE
+backend/models.py       Wilson, analogs, gamma, ENSO, bootstrap index, trend, AUC
+backend/satellite.py    preloaded AppEEARS reader
+backend/i18n.py         Spanish and English messages
+backend/agent/          prompts (es, en) and Gemini call with a rule checker
+backend/api.py          POST /api/farm endpoint and the page
+backend/validate.py     leave-one-year-out and MAG calibration
+frontend/index.html     map with GIBS layers, form and cards (ES/EN)
+tests/test_mvp.py       the 12 layers of the test plan
+docs/                   DECISIONS.md (sources and assumptions) and ROADMAP.md
 ```
 
-Licencia MIT. Cada usuario pone su propia llave en `.env`; ninguna llave va al repositorio, y una prueba lo verifica.
+MIT licence. Each user puts their own key in `.env`; no key goes into the repository, and a test checks it.

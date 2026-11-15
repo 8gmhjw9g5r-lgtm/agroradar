@@ -1,0 +1,20 @@
+# Fixed graph of causal relationships. The agent may only walk these edges.
+# Every edge needs a source before it is published (see docs/DECISIONS.md).
+edges:
+  - {cause: low_rain, effect: low_soil_moisture, direction: down, evidence: A, note: "measured as rain; soil moisture is inferred"}
+  - {cause: low_soil_moisture, effect: water_stress, direction: up, evidence: B}
+  - {cause: bare_soil_heavy_rain, effect: high_erosion, direction: up, evidence: B}
+  - {cause: high_erosion, effect: less_organic_matter_and_nitrogen, direction: down, evidence: C}
+  - {cause: legume_or_green_manure, effect: more_nitrogen, direction: up, evidence: C, note: "supported by CRS in El Salvador"}
+  - {cause: flowering_heat, effect: lower_grain_set_and_yield, direction: down, evidence: B}
+  - {cause: el_nino_phase, effect: long_dry_spell, direction: up, evidence: B, note: "to be validated with model 4"}
+  - {cause: long_dry_spell, effect: low_rain, direction: up, evidence: A}
+
+# Chain that explains each model variable
+chains:
+  dry_spell: [long_dry_spell, low_rain, low_soil_moisture, water_stress]
+  moisture: [low_rain, low_soil_moisture, water_stress]
+  heat: [flowering_heat, lower_grain_set_and_yield]
+  erosion: [bare_soil_heavy_rain, high_erosion, less_organic_matter_and_nitrogen]
+  nitrogen: [legume_or_green_manure, more_nitrogen]
+  # greenness: no edge in the draft; the agent names it without a causal chain

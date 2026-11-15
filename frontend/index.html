@@ -7,129 +7,275 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root { --tierra:#6b4f2a; --milpa:#2f6b3a; --fondo:#f6f3ec; --borde:#d9d2c3; --texto:#2a2620; --alerta:#a33; }
+  :root { --soil:#6b4f2a; --crop:#2f6b3a; --bg:#f6f3ec; --border:#d9d2c3; --text:#2a2620; --alert:#a33; }
   * { box-sizing:border-box; }
-  body { margin:0; font:15px/1.45 system-ui, sans-serif; background:var(--fondo); color:var(--texto); }
-  header { padding:12px 16px; background:var(--milpa); color:#fff; }
+  body { margin:0; font:15px/1.45 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:12px 16px; background:var(--crop); color:#fff; display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
   header h1 { margin:0; font-size:20px; } header p { margin:2px 0 0; opacity:.85; font-size:13px; }
+  .lang { display:flex; border:1px solid #fff8; border-radius:6px; overflow:hidden; flex:none; }
+  .lang button { background:transparent; padding:4px 10px; border-radius:0; font-size:13px; }
+  .lang button[aria-pressed=true] { background:#fff; color:var(--crop); font-weight:600; }
   main { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; padding:16px; }
   @media (max-width:800px) { main { grid-template-columns:1fr; } }
-  #mapa { height:380px; border:1px solid var(--borde); border-radius:8px; }
-  fieldset { border:1px solid var(--borde); border-radius:8px; margin:12px 0; background:#fff; }
-  label { display:block; margin:6px 0; } select, input { font:inherit; padding:4px; }
-  button { font:inherit; padding:8px 16px; background:var(--milpa); color:#fff; border:0; border-radius:6px; cursor:pointer; }
+  #map { height:380px; border:1px solid var(--border); border-radius:8px; }
+  fieldset { border:1px solid var(--border); border-radius:8px; margin:12px 0; background:#fff; }
+  label { display:block; margin:6px 0; } select, input { font:inherit; padding:4px; max-width:100%; }
+  button { font:inherit; padding:8px 16px; background:var(--crop); color:#fff; border:0; border-radius:6px; cursor:pointer; }
   button:disabled { opacity:.5; }
-  .card { background:#fff; border:1px solid var(--borde); border-radius:8px; padding:12px; margin-bottom:12px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; }
+  .row label { margin:4px 0; }
+  #legend img { max-width:100%; height:auto; display:block; margin-top:6px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px; }
   .rot { display:grid; grid-template-columns:150px 1fr 90px; align-items:center; gap:8px; margin:4px 0; }
-  .barra { position:relative; height:14px; background:#eee; border-radius:7px; }
-  .rango { position:absolute; height:100%; background:#bcd8c0; border-radius:7px; }
-  .punto { position:absolute; top:-3px; width:4px; height:20px; background:var(--milpa); }
+  @media (max-width:480px) { .rot { grid-template-columns:110px 1fr 70px; } }
+  .bar { position:relative; height:14px; background:#eee; border-radius:7px; }
+  .range { position:absolute; height:100%; background:#bcd8c0; border-radius:7px; }
+  .dot { position:absolute; top:-3px; width:4px; height:20px; background:var(--crop); }
   .ev { display:inline-block; width:20px; text-align:center; border-radius:4px; color:#fff; font-weight:bold; font-size:12px; }
   .evA { background:#2f6b3a; } .evB { background:#b58a1b; } .evC { background:#888; }
-  .aviso { color:var(--alerta); } small { color:#666; }
+  .alert { color:var(--alert); } small { color:#666; }
+  .table-wrap { overflow-x:auto; }
   table { border-collapse:collapse; width:100%; font-size:13px; } td, th { padding:3px 6px; border-bottom:1px solid #eee; text-align:left; }
-  #explicacion { white-space:pre-wrap; }
+  #explanation { white-space:pre-wrap; }
 </style>
 </head>
 <body>
-<header><h1>Riesgo de la milpa</h1><p>Índice de éxito por rotación con datos de NASA POWER y satélite. Apoya su criterio; no lo sustituye.</p></header>
+<header>
+  <div><h1 data-t="title"></h1><p data-t="subtitle"></p></div>
+  <div class="lang" role="group" aria-label="Idioma / Language">
+    <button type="button" data-lang="es">ES</button><button type="button" data-lang="en">EN</button>
+  </div>
+</header>
 <main>
 <section>
-  <div id="mapa"></div>
-  <small>Toque el mapa para marcar cada parcela (máximo 10).</small>
-  <div id="parcelas"></div>
-  <fieldset><legend>Su siembra</legend>
-    <label>Cultivo actual <select id="cultivo_actual"><option value="maiz">Maíz</option><option value="frijol">Frijol</option><option value="ninguno">Ninguno</option></select></label>
-    <label>Cultivo planeado <select id="cultivo_planeado"><option value="maiz">Maíz</option><option value="frijol">Frijol</option><option value="abono_verde">Abono verde</option></select></label>
-    <label>Fecha de siembra <input type="date" id="fecha_siembra"></label>
-    <label>Época <select id="epoca"><option value="">Deducir de la fecha</option><option value="primera">Primera</option><option value="postrera">Postrera</option></select></label>
-    <label>Cobertura del suelo <select id="cobertura_actual"><option value="">No sé</option><option value="rastrojo">Rastrojo</option><option value="suelo_desnudo">Suelo desnudo</option><option value="abono_verde">Abono verde</option></select></label>
-    <label>Pendiente (%) si la conoce <input type="number" id="pendiente_pct" min="0" max="100"></label>
-    <label>Fase de El Niño a considerar <select id="fase_enso"><option value="">No filtrar</option><option value="nino">El Niño</option><option value="nina">La Niña</option><option value="neutral">Neutral</option></select></label>
-    <div>Me preocupa:
-      <label><input type="checkbox" name="prio" value="agua" checked> Agua</label>
-      <label><input type="checkbox" name="prio" value="erosion"> Erosión</label>
-      <label><input type="checkbox" name="prio" value="nitrogeno"> Nitrógeno</label>
+  <div id="map"></div>
+  <small data-t="tap_map"></small>
+  <fieldset><legend data-t="sat_layers"></legend>
+    <div class="row">
+      <label><span data-t="layer"></span> <select id="sat_layer"></select></label>
+      <label><span data-t="date"></span> <input type="date" id="sat_date"></label>
+      <label><span data-t="opacity"></span> <input type="range" id="sat_opacity" min="0" max="1" step="0.05" value="0.7"></label>
+    </div>
+    <small data-t="sat_note"></small>
+    <div id="legend"></div>
+  </fieldset>
+  <div id="plots"></div>
+  <fieldset><legend data-t="your_planting"></legend>
+    <label><span data-t="current_crop"></span> <select id="current_crop">
+      <option value="maize" data-t="maize"></option><option value="bean" data-t="bean"></option><option value="none" data-t="none"></option></select></label>
+    <label><span data-t="planned_crop"></span> <select id="planned_crop">
+      <option value="maize" data-t="maize"></option><option value="bean" data-t="bean"></option><option value="green_manure" data-t="green_manure"></option></select></label>
+    <label><span data-t="planting_date"></span> <input type="date" id="planting_date"></label>
+    <label><span data-t="season"></span> <select id="season">
+      <option value="" data-t="infer_from_date"></option><option value="primera" data-t="primera"></option><option value="postrera" data-t="postrera"></option></select></label>
+    <label><span data-t="soil_cover"></span> <select id="current_cover">
+      <option value="" data-t="dont_know"></option><option value="stubble" data-t="stubble"></option><option value="bare_soil" data-t="bare_soil"></option><option value="green_manure" data-t="green_manure"></option></select></label>
+    <label><span data-t="slope_if_known"></span> <input type="number" id="slope_pct" min="0" max="100"></label>
+    <label><span data-t="enso_filter"></span> <select id="enso_phase">
+      <option value="" data-t="no_filter"></option><option value="el_nino" data-t="el_nino"></option><option value="la_nina" data-t="la_nina"></option><option value="neutral" data-t="neutral"></option></select></label>
+    <div><span data-t="worried_about"></span>
+      <label><input type="checkbox" name="prio" value="water" checked> <span data-t="water"></span></label>
+      <label><input type="checkbox" name="prio" value="erosion"> <span data-t="erosion"></span></label>
+      <label><input type="checkbox" name="prio" value="nitrogen"> <span data-t="nitrogen"></span></label>
     </div>
   </fieldset>
-  <button id="calcular" disabled>Calcular</button> <span id="estado"></span>
+  <button id="compute" disabled data-t="compute"></button> <span id="status"></span>
 </section>
-<section id="resultado"></section>
+<section id="result"></section>
 </main>
 <script>
-const mapa = L.map('mapa').setView([13.7, -88.5], 8);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(mapa);
-const parcelas = [];
-const $ = id => document.getElementById(id);
-const hoy = new Date(); $('fecha_siembra').value = `${hoy.getFullYear() + (hoy.getMonth() > 6 ? 1 : 0)}-05-25`;
-
-mapa.on('click', e => {
-  if (parcelas.length >= 10) return;
-  const id = 'p' + (parcelas.length + 1);
-  L.marker(e.latlng).addTo(mapa).bindTooltip(id, {permanent: true});
-  parcelas.push({id, lat: +e.latlng.lat.toFixed(5), lon: +e.latlng.lng.toFixed(5), area: 1});
-  pintarParcelas();
-});
-function pintarParcelas() {
-  $('parcelas').innerHTML = parcelas.map((p, i) =>
-    `<div>${p.id} (${p.lat}, ${p.lon}) — área <input type="number" step="0.1" min="0" value="${p.area}" style="width:70px" onchange="parcelas[${i}].area=+this.value"> mz</div>`).join('');
-  $('calcular').disabled = !parcelas.length;
-}
-
-const NOMBRES = {maiz_maiz: 'Maíz tras maíz', maiz_frijol: 'Maíz con frijol', maiz_abono_verde: 'Maíz con abono verde',
-  canicula: 'Canícula', calor: 'Calor en floración', humedad: 'Falta de agua', erosion: 'Erosión', verdor: 'Verdor', nitrogeno: 'Nitrógeno',
-  canicula_larga: 'Canícula larga', inicio_tardio: 'Lluvias tardías', calor_floracion: 'Calor en floración', deficit_lluvia: 'Poca lluvia en el ciclo', anomalia_lluvia: 'Lluvia muy baja'};
-const n = k => NOMBRES[k] || k;
-const ev = e => `<span class="ev ev${e}" title="Evidencia ${e}">${e}</span>`;
-
-$('calcular').onclick = async () => {
-  const prios = [...document.querySelectorAll('[name=prio]:checked')].map(x => x.value);
-  const finca = {finca_id: 'f' + Date.now(), fase_enso: $('fase_enso').value || null, parcelas: parcelas.map(p => {
-    const x = {parcela_id: p.id, geometria: {type: 'Point', coordinates: [p.lon, p.lat]}, area_mz: p.area,
-      cultivo_actual: $('cultivo_actual').value, cultivo_planeado: $('cultivo_planeado').value,
-      fecha_siembra: $('fecha_siembra').value, prioridades: prios};
-    if ($('epoca').value) x.epoca = $('epoca').value;
-    if ($('cobertura_actual').value) x.cobertura_actual = $('cobertura_actual').value;
-    if ($('pendiente_pct').value) x.pendiente_pct = +$('pendiente_pct').value;
-    return x; })};
-  $('calcular').disabled = true;
-  $('estado').textContent = 'Calculando… la primera vez descarga 35 años de clima de NASA y puede tardar.';
-  try {
-    const r = await fetch('/api/finca', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(finca)});
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail?.aviso || r.statusText);
-    pintar(d); $('estado').textContent = '';
-  } catch (e) { $('estado').innerHTML = `<span class="aviso">${e.message}</span>`; }
-  $('calcular').disabled = false;
+const T = {
+  es: {
+    title: 'Riesgo de la milpa', subtitle: 'Índice de éxito por rotación con datos de NASA POWER y satélite. Apoya su criterio; no lo sustituye.',
+    tap_map: 'Toque el mapa para marcar cada parcela (máximo 10).',
+    sat_layers: 'Capas de satélite (NASA GIBS)', layer: 'Capa', date: 'Fecha', opacity: 'Opacidad',
+    sat_note: 'Solo para mirar: estas capas no entran en el cálculo. Sin fecha se muestra la más reciente.',
+    none_layer: 'Ninguna',
+    your_planting: 'Su siembra', current_crop: 'Cultivo actual', planned_crop: 'Cultivo planeado', planting_date: 'Fecha de siembra',
+    season: 'Época', infer_from_date: 'Deducir de la fecha', soil_cover: 'Cobertura del suelo', dont_know: 'No sé',
+    slope_if_known: 'Pendiente (%) si la conoce', enso_filter: 'Fase de El Niño a considerar', no_filter: 'No filtrar',
+    worried_about: 'Me preocupa:', water: 'Agua', compute: 'Calcular',
+    maize: 'Maíz', bean: 'Frijol', none: 'Ninguno', green_manure: 'Abono verde', stubble: 'Rastrojo', bare_soil: 'Suelo desnudo',
+    primera: 'Primera', postrera: 'Postrera', el_nino: 'El Niño', la_nina: 'La Niña', neutral: 'Neutral',
+    computing: 'Calculando… la primera vez descarga 35 años de clima de NASA y puede tardar.',
+    area: 'área', explanation: 'Explicación', ranking: 'Parcelas por prioridad de atención', weigh_most: 'pesan más', and: 'y',
+    plot: 'Parcela', years: 'años', only_years: 'solo años', confidence: 'confianza', success: 'Éxito',
+    no_index: 'sin índice publicable', risk: 'Riesgo', prob: 'Prob.', range80: 'Rango 80%', years_col: 'Años', of: 'de',
+    erosion_in: 'Erosión a {n} años', times_now: 'veces el nivel actual',
+    climate: 'Clima', mm_year: 'mm/año', rains_start: 'lluvias empiezan ~', slope: 'Pendiente',
+    missing: 'Faltan', assumptions: 'Supuestos usados', current_enso: 'ENSO actual',
+    relang: 'Vuelva a calcular para ver los avisos y la explicación en español.', evidence: 'Evidencia',
+    // codes from the API
+    maize_maize: 'Maíz tras maíz', maize_bean: 'Maíz con frijol', maize_green_manure: 'Maíz con abono verde',
+    dry_spell: 'Canícula', heat: 'Calor en floración', moisture: 'Falta de agua', erosion: 'Erosión', greenness: 'Verdor', nitrogen: 'Nitrógeno',
+    long_dry_spell: 'Canícula larga', late_onset: 'Lluvias tardías', flowering_heat: 'Calor en floración', rain_deficit: 'Poca lluvia en el ciclo', rain_anomaly: 'Lluvia muy baja',
+    normal: 'normal', low_confidence: 'baja', not_publishable: 'no publicable',
+    up: 'sube', down: 'baja', no_clear_trend: 'sin tendencia clara', stable: 'se mantiene',
+    relative_trend_extrapolation_not_physical_forecast: 'extrapolación de tendencia, no pronóstico físico',
+    user: 'usuario', assumed: 'supuesto', nasa_appeears: 'NASA AppEEARS',
+    satellite_data_pending: 'datos de satélite pendientes', slope_pct: 'pendiente', soilgrids_no_response: 'SoilGrids no respondió', soil_analysis: 'análisis de suelo',
+    date_fmt: (m, d) => `${d}/${m}`,
+  },
+  en: {
+    title: 'Milpa crop risk', subtitle: 'Success index per rotation with NASA POWER and satellite data. It supports your judgment; it does not replace it.',
+    tap_map: 'Tap the map to mark each plot (10 at most).',
+    sat_layers: 'Satellite layers (NASA GIBS)', layer: 'Layer', date: 'Date', opacity: 'Opacity',
+    sat_note: 'For viewing only: these layers are not used in the calculation. With no date, the latest one is shown.',
+    none_layer: 'None',
+    your_planting: 'Your planting', current_crop: 'Current crop', planned_crop: 'Planned crop', planting_date: 'Planting date',
+    season: 'Season', infer_from_date: 'Infer from the date', soil_cover: 'Soil cover', dont_know: "Don't know",
+    slope_if_known: 'Slope (%) if you know it', enso_filter: 'El Niño phase to consider', no_filter: "Don't filter",
+    worried_about: "I'm worried about:", water: 'Water', compute: 'Calculate',
+    maize: 'Maize', bean: 'Beans', none: 'None', green_manure: 'Green manure', stubble: 'Crop stubble', bare_soil: 'Bare soil',
+    primera: 'Primera (first season)', postrera: 'Postrera (second season)', el_nino: 'El Niño', la_nina: 'La Niña', neutral: 'Neutral',
+    computing: 'Calculating… the first time it downloads 35 years of NASA climate data and can take a while.',
+    area: 'area', explanation: 'Explanation', ranking: 'Plots by priority for attention', weigh_most: 'weigh most', and: 'and',
+    plot: 'Plot', years: 'years', only_years: 'only years', confidence: 'confidence', success: 'Success',
+    no_index: 'no publishable index', risk: 'Risk', prob: 'Prob.', range80: '80% range', years_col: 'Years', of: 'of',
+    erosion_in: 'Erosion in {n} years', times_now: 'times the current level',
+    climate: 'Climate', mm_year: 'mm/year', rains_start: 'rains start ~', slope: 'Slope',
+    missing: 'Missing', assumptions: 'Assumptions used', current_enso: 'Current ENSO',
+    relang: 'Calculate again to see the warnings and explanation in English.', evidence: 'Evidence',
+    maize_maize: 'Maize after maize', maize_bean: 'Maize with beans', maize_green_manure: 'Maize with green manure',
+    dry_spell: 'Canícula (dry spell)', heat: 'Heat at flowering', moisture: 'Lack of water', erosion: 'Erosion', greenness: 'Greenness', nitrogen: 'Nitrogen',
+    long_dry_spell: 'Long canícula', late_onset: 'Late rains', flowering_heat: 'Heat at flowering', rain_deficit: 'Little rain in the cycle', rain_anomaly: 'Very low rain',
+    normal: 'normal', low_confidence: 'low', not_publishable: 'not publishable',
+    up: 'rising', down: 'falling', no_clear_trend: 'no clear trend', stable: 'stable',
+    relative_trend_extrapolation_not_physical_forecast: 'trend extrapolation, not a physical forecast',
+    user: 'user', assumed: 'assumed', nasa_appeears: 'NASA AppEEARS',
+    satellite_data_pending: 'satellite data pending', slope_pct: 'slope', soilgrids_no_response: 'SoilGrids did not respond', soil_analysis: 'soil analysis',
+    date_fmt: (m, d) => `${m}/${d}`,
+  },
 };
 
-function pintar(d) {
-  let h = d.avisos.map(a => `<p class="aviso">${a}</p>`).join('');
-  if (d.enso_actual) h += `<p><small>ENSO actual: ${d.enso_actual.fase} (ONI ${d.enso_actual.estacion} ${d.enso_actual.anio} = ${d.enso_actual.oni}, NOAA)</small></p>`;
-  if (d.explicacion) h += `<div class="card"><b>Explicación</b><div id="explicacion"></div>${d.avisos_agente.map(a => `<p class="aviso"><small>${a}</small></p>`).join('')}</div>`;
-  else h += d.avisos_agente.map(a => `<p><small>${a}</small></p>`).join('');
-  h += `<div class="card"><b>Parcelas por prioridad de atención</b><ol>${d.ranking.map(r => `<li>${r.parcela_id} (${r.prioridad}) — pesan más: ${r.por_que.map(n).join(' y ')}</li>`).join('')}</ol></div>`;
-  for (const p of d.parcelas) {
-    h += `<div class="card"><b>Parcela ${p.parcela_id}</b> <small>${p.epoca} · ${p.n_anios_indice} años${p.fase_enso_filtrada ? ' (solo años ' + p.fase_enso_filtrada + ')' : ''} · confianza: ${p.nivel_confianza}</small>`;
-    h += `<p><small>Éxito = ${p.definicion_exito}.</small></p>`;
-    for (const r of p.rotaciones) {
-      h += `<div class="rot"><span>${n(r.id)}</span>`;
-      h += r.indice == null ? `<span><small>sin índice publicable</small></span>`
-        : `<div class="barra"><div class="rango" style="left:${r.rango_80[0]}%;width:${r.rango_80[1] - r.rango_80[0]}%"></div><div class="punto" style="left:${r.indice}%"></div></div>`;
-      h += `<span>${r.indice == null ? '' : `<b>${r.indice}</b> <small>${r.rango_80[0]}–${r.rango_80[1]}</small>`}</span></div>`;
-    }
-    h += `<table><tr><th>Riesgo</th><th>Prob.</th><th>Rango 80%</th><th>Años</th></tr>${p.riesgos.map(r =>
-      `<tr><td>${ev(r.evidencia)} ${n(r.evento)}</td><td>${Math.round(r.p * 100)}%</td><td>${Math.round(r.ic80[0] * 100)}–${Math.round(r.ic80[1] * 100)}%</td><td>${r.k} de ${r.n}</td></tr>`).join('')}</table>`;
-    h += `<p>${p.contribuciones.map(c => `${ev(c.evidencia)} ${n(c.variable)}${c.aporte_al_indice != null ? ' ' + c.aporte_al_indice : ''}`).join(' · ')}</p>`;
-    const t = p.tendencia_erosion, pt = p.perfil_terreno;
-    if (t) h += `<p>Erosión a ${t.anios} años: <b>${t.direccion}</b> <small>(${t.banda_80[0]}–${t.banda_80[1]} veces el nivel actual; ${t.nota})</small></p>`;
-    h += `<p><small>Clima ${pt.clima.anios}: ${pt.clima.lluvia_anual_media_mm} mm/año, lluvias empiezan ~${pt.clima.inicio_lluvias_mediano}. Pendiente ${pt.pendiente_pct}% (${pt.pendiente_fuente}).</small></p>`;
-    if (p.datos_faltantes.length) h += `<p><small>Faltan: ${p.datos_faltantes.join(', ')}</small></p>`;
-    h += `<details><summary><small>Supuestos usados</small></summary><small>${p.supuestos_usados.join(', ')}</small></details></div>`;
-  }
-  $('resultado').innerHTML = h;
-  if (d.explicacion) $('explicacion').textContent = d.explicacion;
+// NASA GIBS layers (verified against the WMTS capabilities on 2026-11-15)
+const GIBS = [
+  {id: 'MODIS_Terra_CorrectedReflectance_TrueColor', level: 9, ext: 'jpeg', legend: null,
+   name: {es: 'Color real (MODIS Terra)', en: 'True colour (MODIS Terra)'}},
+  {id: 'MODIS_Terra_L3_NDVI_16Day', level: 9, ext: 'png', legend: 'MODIS_L3_NDVI_H.svg',
+   name: {es: 'Verdor NDVI, 16 días (MODIS)', en: 'Greenness NDVI, 16-day (MODIS)'}},
+  {id: 'IMERG_Precipitation_Rate', level: 6, ext: 'png', legend: 'GPM_Precipitation_Rate_H.svg',
+   name: {es: 'Lluvia diaria (GPM IMERG)', en: 'Daily rain rate (GPM IMERG)'}},
+  {id: 'SMAP_L4_Analyzed_Root_Zone_Soil_Moisture', level: 6, ext: 'png', legend: 'SMAP_Analyzed_Soil_Moisture_H.svg',
+   name: {es: 'Humedad del suelo en la raíz (SMAP L4)', en: 'Root-zone soil moisture (SMAP L4)'}},
+  {id: 'MODIS_Terra_Land_Surface_Temp_Day', level: 7, ext: 'png', legend: 'MODIS_Land_Surface_Temp_H.svg',
+   name: {es: 'Temperatura del suelo de día (MODIS)', en: 'Daytime land surface temperature (MODIS)'}},
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+let lang = 'es';
+try { const saved = localStorage.getItem('lang'); if (saved in T) lang = saved; } catch (e) {}
+const tr = k => T[lang][k] ?? T.es[k] ?? k;
+const n = k => esc(tr(k));
+
+const map = L.map('map').setView([13.7, -88.5], 8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(map);
+let satLayer = null;
+const today = new Date();
+$('sat_date').max = today.toISOString().slice(0, 10);
+
+function updateSatellite() {
+  if (satLayer) { map.removeLayer(satLayer); satLayer = null; }
+  const g = GIBS.find(x => x.id === $('sat_layer').value);
+  $('legend').innerHTML = g && g.legend ? `<img src="https://gibs.earthdata.nasa.gov/legends/${g.legend}" alt="${esc(g.name[lang])}">` : '';
+  if (!g) return;
+  const time = $('sat_date').value || 'default';
+  satLayer = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${g.id}/default/${time}/GoogleMapsCompatible_Level${g.level}/{z}/{y}/{x}.${g.ext}`,
+    {maxNativeZoom: g.level, maxZoom: 18, opacity: +$('sat_opacity').value, attribution: 'NASA EOSDIS GIBS'}).addTo(map);
 }
+$('sat_layer').onchange = $('sat_date').onchange = updateSatellite;
+$('sat_opacity').oninput = () => satLayer && satLayer.setOpacity(+$('sat_opacity').value);
+
+const plots = [];
+$('planting_date').value = `${today.getFullYear() + (today.getMonth() > 6 ? 1 : 0)}-05-25`;
+map.on('click', e => {
+  if (plots.length >= 10) return;
+  const id = 'p' + (plots.length + 1);
+  L.marker(e.latlng).addTo(map).bindTooltip(id, {permanent: true});
+  plots.push({id, lat: +e.latlng.lat.toFixed(5), lon: +e.latlng.lng.toFixed(5), area: 1});
+  drawPlots();
+});
+function drawPlots() {
+  $('plots').innerHTML = plots.map((p, i) =>
+    `<div>${p.id} (${p.lat}, ${p.lon}) — ${n('area')} <input type="number" step="0.1" min="0" value="${p.area}" style="width:70px" onchange="plots[${i}].area=+this.value"> mz</div>`).join('');
+  $('compute').disabled = !plots.length;
+}
+
+let last = null;
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = tr('title');
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = tr(el.dataset.t); });
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+  const sel = $('sat_layer').value;
+  $('sat_layer').innerHTML = `<option value="">${n('none_layer')}</option>` + GIBS.map(g => `<option value="${g.id}">${esc(g.name[lang])}</option>`).join('');
+  $('sat_layer').value = sel;
+  drawPlots();
+  if (last) render(last);
+}
+document.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => {
+  lang = b.dataset.lang;
+  try { localStorage.setItem('lang', lang); } catch (e) {}
+  applyLang();
+  updateSatellite();
+});
+
+const ev = e => `<span class="ev ev${esc(e)}" title="${n('evidence')} ${esc(e)}">${esc(e)}</span>`;
+
+$('compute').onclick = async () => {
+  const prios = [...document.querySelectorAll('[name=prio]:checked')].map(x => x.value);
+  const farm = {farm_id: 'f' + Date.now(), lang, enso_phase: $('enso_phase').value || null, plots: plots.map(p => {
+    const x = {plot_id: p.id, geometry: {type: 'Point', coordinates: [p.lon, p.lat]}, area_mz: p.area,
+      current_crop: $('current_crop').value, planned_crop: $('planned_crop').value,
+      planting_date: $('planting_date').value, priorities: prios};
+    if ($('season').value) x.season = $('season').value;
+    if ($('current_cover').value) x.current_cover = $('current_cover').value;
+    if ($('slope_pct').value) x.slope_pct = +$('slope_pct').value;
+    return x; })};
+  $('compute').disabled = true;
+  $('status').textContent = tr('computing');
+  try {
+    const r = await fetch('/api/farm', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(farm)});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail?.warning || r.statusText);
+    last = d; render(d); $('status').textContent = '';
+  } catch (e) { $('status').innerHTML = `<span class="alert">${esc(e.message)}</span>`; }
+  $('compute').disabled = false;
+};
+
+function fmtDate(md) { const [m, d] = md.split('-'); return T[lang].date_fmt(m, d); }
+
+function render(d) {
+  let h = d.lang !== lang ? `<p><small>${n('relang')}</small></p>` : '';
+  h += d.warnings.map(a => `<p class="alert">${esc(a)}</p>`).join('');
+  if (d.current_enso) h += `<p><small>${n('current_enso')}: ${n(d.current_enso.phase)} (ONI ${esc(d.current_enso.season)} ${d.current_enso.year} = ${d.current_enso.oni}, NOAA)</small></p>`;
+  if (d.explanation) h += `<div class="card"><b>${n('explanation')}</b><div id="explanation"></div>${d.agent_warnings.map(a => `<p class="alert"><small>${esc(a)}</small></p>`).join('')}</div>`;
+  else h += d.agent_warnings.map(a => `<p><small>${esc(a)}</small></p>`).join('');
+  h += `<div class="card"><b>${n('ranking')}</b><ol>${d.ranking.map(r => `<li>${esc(r.plot_id)} (${r.priority}) — ${n('weigh_most')}: ${r.why.map(n).join(' ' + n('and') + ' ')}</li>`).join('')}</ol></div>`;
+  for (const p of d.plots) {
+    h += `<div class="card"><b>${n('plot')} ${esc(p.plot_id)}</b> <small>${n(p.season)} · ${p.n_years_index} ${n('years')}${p.enso_phase_filter ? ' (' + n('only_years') + ' ' + n(p.enso_phase_filter) + ')' : ''} · ${n('confidence')}: ${n(p.confidence_level)}</small>`;
+    h += `<p><small>${n('success')} = ${esc(p.success_definition)}.</small></p>`;
+    for (const r of p.rotations) {
+      h += `<div class="rot"><span>${n(r.id)}</span>`;
+      h += r.index == null ? `<span><small>${n('no_index')}</small></span>`
+        : `<div class="bar"><div class="range" style="left:${r.range_80[0]}%;width:${r.range_80[1] - r.range_80[0]}%"></div><div class="dot" style="left:${r.index}%"></div></div>`;
+      h += `<span>${r.index == null ? '' : `<b>${r.index}</b> <small>${r.range_80[0]}–${r.range_80[1]}</small>`}</span></div>`;
+    }
+    h += `<div class="table-wrap"><table><tr><th>${n('risk')}</th><th>${n('prob')}</th><th>${n('range80')}</th><th>${n('years_col')}</th></tr>${p.risks.map(r =>
+      `<tr><td>${ev(r.evidence)} ${n(r.event)}</td><td>${Math.round(r.p * 100)}%</td><td>${Math.round(r.ci80[0] * 100)}–${Math.round(r.ci80[1] * 100)}%</td><td>${r.k} ${n('of')} ${r.n}</td></tr>`).join('')}</table></div>`;
+    h += `<p>${p.contributions.map(c => `${ev(c.evidence)} ${n(c.variable)}${c.index_contribution != null ? ' ' + c.index_contribution : ''}`).join(' · ')}</p>`;
+    const t = p.erosion_trend, tp = p.terrain_profile;
+    if (t) h += `<p>${esc(tr('erosion_in').replace('{n}', t.years))}: <b>${n(t.direction)}</b> <small>(${t.band_80[0]}–${t.band_80[1]} ${n('times_now')}; ${n(t.note)})</small></p>`;
+    h += `<p><small>${n('climate')} ${esc(tp.climate.years)}: ${tp.climate.mean_annual_rain_mm} ${n('mm_year')}, ${n('rains_start')}${esc(fmtDate(tp.climate.median_rain_onset))}. ${n('slope')} ${tp.slope_pct}% (${n(tp.slope_source)}).</small></p>`;
+    if (p.missing_data.length) h += `<p><small>${n('missing')}: ${p.missing_data.map(n).join(', ')}</small></p>`;
+    h += `<details><summary><small>${n('assumptions')}</small></summary><small>${p.assumptions_used.map(esc).join(', ')}</small></details></div>`;
+  }
+  $('result').innerHTML = h;
+  if (d.explanation) $('explanation').textContent = d.explanation;
+}
+
+applyLang();
 </script>
 </body>
 </html>

@@ -1,0 +1,321 @@
+department,year,season,area_mz,production_qq,yield_qq_mz,extraction
+Ahuachapán,2001,total,32850,1282900,39.1,text
+Ahuachapán,2002,total,32172,1502863,46.7,transcribed_from_image
+Ahuachapán,2003,total,32054,1503516,46.9,text
+Ahuachapán,2004,total,30877,1431384,46.4,text
+Ahuachapán,2005,total,30873,1437073,46.5,text
+Ahuachapán,2006,total,32316,1553720,48.1,transcribed_from_image
+Ahuachapán,2009,total,32786,1435248,43.8,text
+Ahuachapán,2010,total,29508,1297747,44.0,text
+Ahuachapán,2011,total,31193,1277877,41.0,text
+Ahuachapán,2012,total,38129,1931044,50.6,text
+Ahuachapán,2013,total,46722,2353515,50.4,text
+Ahuachapán,2014,total,53546,2440892,45.6,text
+Ahuachapán,2015,total,48429,1414606,29.2,text
+Ahuachapán,2016,total,41188,1987562,48.3,text
+Ahuachapán,2017,total,39744,2057657,51.8,text
+Ahuachapán,2018,total,43964,1710662,38.9,text
+Ahuachapán,2019,total,51190,2434362,47.6,transcribed_from_image
+Ahuachapán,2020,total,40952,1965329,48.0,transcribed_from_image
+Ahuachapán,2021,total,50254,2587484,51.5,text
+Ahuachapán,2022,total,48897,2491625,51.0,transcribed_from_image
+Cabañas,2001,total,22200,682100,30.7,text
+Cabañas,2002,total,19504,732921,37.6,transcribed_from_image
+Cabañas,2003,total,13054,514877,39.4,text
+Cabañas,2004,total,12123,564897,46.6,text
+Cabañas,2005,total,15601,678879,43.5,text
+Cabañas,2006,total,14182,640831,45.2,transcribed_from_image
+Cabañas,2009,total,10992,606949,55.2,text
+Cabañas,2010,total,11834,524816,44.3,text
+Cabañas,2011,total,12509,516780,41.3,text
+Cabañas,2012,total,14755,714804,48.4,text
+Cabañas,2013,total,28685,1329493,46.3,text
+Cabañas,2014,total,24132,1009200,41.8,text
+Cabañas,2015,total,28425,1210006,42.6,text
+Cabañas,2016,total,24888,1126681,45.3,text
+Cabañas,2017,total,26798,1397538,52.2,text
+Cabañas,2018,total,27933,1175409,42.1,text
+Cabañas,2019,total,23274,1237095,53.2,transcribed_from_image
+Cabañas,2020,total,22300,1241585,55.7,transcribed_from_image
+Cabañas,2021,total,23513,1244700,52.9,text
+Cabañas,2022,total,23506,1252684,53.3,transcribed_from_image
+Chalatenango,2013,primera,20023,1001012,50.0,transcribed_from_image
+Chalatenango,2014,primera,22487,642310,28.6,transcribed_from_image
+Chalatenango,2015,primera,19292,740333,38.4,transcribed_from_image
+Chalatenango,2016,primera,22943,1050489,45.8,transcribed_from_image
+Chalatenango,2017,primera,18279,870631,47.6,transcribed_from_image
+Chalatenango,2018,primera,15926,593559,37.3,transcribed_from_image
+Chalatenango,2019,primera,17365,750493,43.2,transcribed_from_image
+Chalatenango,2020,primera,18059,853626,47.3,transcribed_from_image
+Chalatenango,2021,primera,12786,494191,38.7,transcribed_from_image
+Chalatenango,2022,primera,14784,639549,43.3,transcribed_from_image
+Chalatenango,2001,total,27200,971300,35.7,text
+Chalatenango,2002,total,15781,698468,44.3,transcribed_from_image
+Chalatenango,2003,total,21264,1018859,47.9,text
+Chalatenango,2004,total,23397,1131443,48.4,text
+Chalatenango,2005,total,25550,1273372,49.8,text
+Chalatenango,2006,total,24343,1282945,52.7,transcribed_from_image
+Chalatenango,2009,total,34098,2048056,60.1,text
+Chalatenango,2010,total,29111,1479132,50.8,text
+Chalatenango,2011,total,30773,1456486,47.3,text
+Chalatenango,2012,total,34735,1912997,55.1,text
+Chalatenango,2013,total,20153,1008648,50.0,text
+Chalatenango,2014,total,22906,662447,28.9,text
+Chalatenango,2015,total,20021,767748,38.3,text
+Chalatenango,2016,total,22943,1050489,45.8,text
+Chalatenango,2017,total,18356,873411,47.6,text
+Chalatenango,2018,total,16318,611655,37.5,text
+Chalatenango,2019,total,17525,760915,43.4,transcribed_from_image
+Chalatenango,2020,total,18173,860085,47.3,transcribed_from_image
+Chalatenango,2021,total,12984,500140,38.5,text
+Chalatenango,2022,total,14804,640669,43.3,transcribed_from_image
+Cuscatlán,2001,total,16100,661000,41.1,text
+Cuscatlán,2002,total,15268,668406,43.8,transcribed_from_image
+Cuscatlán,2003,total,16134,748363,46.4,text
+Cuscatlán,2004,total,14406,687102,47.7,text
+Cuscatlán,2005,total,16194,805963,49.8,text
+Cuscatlán,2006,total,13407,681639,50.8,transcribed_from_image
+Cuscatlán,2009,total,19544,1184100,60.6,text
+Cuscatlán,2010,total,16740,920911,55.0,text
+Cuscatlán,2011,total,17696,906812,51.2,text
+Cuscatlán,2012,total,21615,1215111,56.2,text
+Cuscatlán,2013,total,32882,1515518,46.1,text
+Cuscatlán,2014,total,33029,1598035,48.4,text
+Cuscatlán,2015,total,31736,1333628,42.0,text
+Cuscatlán,2016,total,34775,1897490,54.6,text
+Cuscatlán,2017,total,38731,2029736,52.4,text
+Cuscatlán,2018,total,37850,2077858,54.9,text
+Cuscatlán,2019,total,41583,2306305,55.5,transcribed_from_image
+Cuscatlán,2020,total,39121,2173709,55.6,transcribed_from_image
+Cuscatlán,2021,total,42740,2617073,61.2,text
+Cuscatlán,2022,total,39167,2067846,52.8,transcribed_from_image
+La Libertad,2001,total,28600,1102400,38.5,text
+La Libertad,2002,total,27270,1271112,46.6,transcribed_from_image
+La Libertad,2003,total,28470,1337642,47.0,text
+La Libertad,2004,total,24860,1221108,49.1,text
+La Libertad,2005,total,31657,1437230,45.4,text
+La Libertad,2006,total,24360,1255840,51.6,transcribed_from_image
+La Libertad,2009,total,31384,1611210,51.3,text
+La Libertad,2010,total,27358,1481489,54.2,text
+La Libertad,2011,total,28921,1458806,50.4,text
+La Libertad,2012,total,31319,1888453,60.3,text
+La Libertad,2013,total,32603,1574789,48.3,text
+La Libertad,2014,total,29360,1479122,50.4,text
+La Libertad,2015,total,33560,1612038,48.0,text
+La Libertad,2016,total,35222,1890892,53.7,text
+La Libertad,2017,total,31157,1737465,55.8,text
+La Libertad,2018,total,26108,1088367,41.7,text
+La Libertad,2019,total,22290,1260081,56.5,transcribed_from_image
+La Libertad,2020,total,28928,1560573,53.9,transcribed_from_image
+La Libertad,2021,total,27525,1477287,53.7,text
+La Libertad,2022,total,30716,1591863,51.8,transcribed_from_image
+La Paz,2001,total,17550,640800,36.5,text
+La Paz,2002,total,12967,479952,37.0,transcribed_from_image
+La Paz,2003,total,7466,272829,36.5,text
+La Paz,2004,total,10585,426470,40.3,text
+La Paz,2005,total,17586,768040,43.7,text
+La Paz,2006,total,13106,634841,48.4,transcribed_from_image
+La Paz,2009,total,27305,1248476,45.7,text
+La Paz,2010,total,32586,1578829,48.5,text
+La Paz,2011,total,34447,1554655,45.1,text
+La Paz,2012,total,21573,1063036,49.3,text
+La Paz,2013,total,19397,906144,46.7,text
+La Paz,2014,total,18790,803355,42.8,text
+La Paz,2015,total,13102,540233,41.2,text
+La Paz,2016,total,21703,1160154,53.5,text
+La Paz,2017,total,18222,898403,49.3,text
+La Paz,2018,total,15119,572765,37.9,text
+La Paz,2019,total,11640,506700,43.5,transcribed_from_image
+La Paz,2020,total,16380,656933,40.1,transcribed_from_image
+La Paz,2021,total,12553,586718,46.7,text
+La Paz,2022,total,13612,652539,47.9,transcribed_from_image
+La Unión,2013,postrera,24121,829087,34.4,transcribed_from_image
+La Unión,2014,postrera,35602,1388439,39.0,transcribed_from_image
+La Unión,2015,postrera,29579,1050125,35.5,transcribed_from_image
+La Unión,2016,postrera,38182,1429760,37.4,transcribed_from_image
+La Unión,2017,postrera,29123,1224652,42.1,transcribed_from_image
+La Unión,2018,postrera,27855,1074989,38.6,transcribed_from_image
+La Unión,2019,postrera,24434,941693,38.5,transcribed_from_image
+La Unión,2020,postrera,26252,861641,32.8,transcribed_from_image
+La Unión,2021,postrera,26113,964198,36.9,transcribed_from_image
+La Unión,2022,postrera,28647,1027032,35.9,transcribed_from_image
+La Unión,2001,total,43579,321895,7.4,text
+La Unión,2002,total,30998,774918,25.0,transcribed_from_image
+La Unión,2003,total,28877,812272,28.1,text
+La Unión,2004,total,26446,680034,25.7,text
+La Unión,2005,total,15964,643221,40.3,text
+La Unión,2006,total,24644,978396,39.7,transcribed_from_image
+La Unión,2009,total,23310,797977,34.2,text
+La Unión,2010,total,30552,951191,31.1,text
+La Unión,2011,total,32297,936627,29.0,text
+La Unión,2012,total,35349,1318078,37.3,text
+La Unión,2013,total,30450,1025028,33.7,text
+La Unión,2014,total,47291,1539633,32.6,text
+La Unión,2015,total,29579,1050125,35.5,text
+La Unión,2016,total,41710,1552520,37.2,text
+La Unión,2017,total,30924,1287695,41.6,text
+La Unión,2018,total,28362,1082988,38.2,text
+La Unión,2019,total,26111,953178,36.5,transcribed_from_image
+La Unión,2020,total,26872,876209,32.6,transcribed_from_image
+La Unión,2021,total,27615,1005847,36.4,text
+La Unión,2022,total,29150,1041996,35.7,transcribed_from_image
+Morazán,2001,total,21600,434800,20.1,text
+Morazán,2002,total,16898,457233,27.1,transcribed_from_image
+Morazán,2003,total,15785,429147,27.2,text
+Morazán,2004,total,16031,489525,30.5,text
+Morazán,2005,total,15750,462635,29.4,text
+Morazán,2006,total,17116,659236,38.5,transcribed_from_image
+Morazán,2009,total,21417,767233,35.8,text
+Morazán,2010,total,20565,593401,28.9,text
+Morazán,2011,total,21740,584315,26.9,text
+Morazán,2012,total,21201,780273,36.8,text
+Morazán,2013,total,22381,629665,28.1,text
+Morazán,2014,total,27163,757177,27.9,text
+Morazán,2015,total,23530,795866,33.8,text
+Morazán,2016,total,24849,786775,31.7,text
+Morazán,2017,total,21752,766722,35.2,text
+Morazán,2018,total,22630,666600,29.5,text
+Morazán,2019,total,20753,705802,34.0,transcribed_from_image
+Morazán,2020,total,26756,785125,29.3,transcribed_from_image
+Morazán,2021,total,20163,648747,32.2,text
+Morazán,2022,total,20970,633155,30.2,transcribed_from_image
+San Miguel,2013,postrera,17027,639859,37.6,transcribed_from_image
+San Miguel,2014,postrera,23371,937177,40.1,transcribed_from_image
+San Miguel,2015,postrera,36939,1586308,42.9,transcribed_from_image
+San Miguel,2016,postrera,31503,1328060,42.2,transcribed_from_image
+San Miguel,2017,postrera,25401,1193529,47.0,transcribed_from_image
+San Miguel,2018,postrera,30310,1029964,34.0,transcribed_from_image
+San Miguel,2019,postrera,29277,1196602,40.9,transcribed_from_image
+San Miguel,2020,postrera,29178,1161060,39.8,transcribed_from_image
+San Miguel,2021,postrera,26680,1148271,43.0,transcribed_from_image
+San Miguel,2022,postrera,33089,1045016,31.6,transcribed_from_image
+San Miguel,2013,primera,24213,869906,35.9,transcribed_from_image
+San Miguel,2014,primera,23539,469367,19.9,transcribed_from_image
+San Miguel,2015,primera,6933,132195,19.1,transcribed_from_image
+San Miguel,2016,primera,18592,802513,43.2,transcribed_from_image
+San Miguel,2017,primera,13911,628093,45.2,transcribed_from_image
+San Miguel,2018,primera,6543,167548,25.6,transcribed_from_image
+San Miguel,2019,primera,9330,259017,27.8,transcribed_from_image
+San Miguel,2020,primera,7676,225466,29.4,transcribed_from_image
+San Miguel,2021,primera,6679,242046,36.2,transcribed_from_image
+San Miguel,2022,primera,6010,173390,28.9,transcribed_from_image
+San Miguel,2001,total,69271,1125602,16.2,text
+San Miguel,2002,total,30895,1068243,34.6,transcribed_from_image
+San Miguel,2003,total,30834,998653,32.4,text
+San Miguel,2004,total,32117,971950,30.3,text
+San Miguel,2005,total,26408,897148,34.0,text
+San Miguel,2006,total,27339,1215949,44.5,transcribed_from_image
+San Miguel,2009,total,28061,767564,27.4,text
+San Miguel,2010,total,26095,1060124,40.6,text
+San Miguel,2011,total,27585,1043892,37.8,text
+San Miguel,2012,total,29826,1297299,43.5,text
+San Miguel,2013,total,41562,1528091,36.8,text
+San Miguel,2014,total,47021,1409761,30.0,text
+San Miguel,2015,total,43871,1718503,39.2,text
+San Miguel,2016,total,50101,2130867,42.5,text
+San Miguel,2017,total,39362,1824147,46.3,text
+San Miguel,2018,total,36853,1197512,32.5,text
+San Miguel,2019,total,38607,1455619,37.7,transcribed_from_image
+San Miguel,2020,total,36854,1386526,37.6,transcribed_from_image
+San Miguel,2021,total,33367,1390808,41.7,text
+San Miguel,2022,total,39099,1218406,31.2,transcribed_from_image
+San Salvador,2001,total,19000,738900,38.9,text
+San Salvador,2002,total,19549,867010,44.4,transcribed_from_image
+San Salvador,2003,total,19028,903603,47.5,text
+San Salvador,2004,total,17970,849552,47.3,text
+San Salvador,2005,total,20459,1051940,51.4,text
+San Salvador,2006,total,24773,1358152,54.8,transcribed_from_image
+San Salvador,2009,total,28616,1430308,50.0,text
+San Salvador,2010,total,21569,1106243,51.3,text
+San Salvador,2011,total,22800,1089305,47.8,text
+San Salvador,2012,total,25944,1526069,58.8,text
+San Salvador,2013,total,17223,885209,51.4,text
+San Salvador,2014,total,17866,1005807,56.3,text
+San Salvador,2015,total,18561,1044036,56.2,text
+San Salvador,2016,total,21022,1271064,60.5,text
+San Salvador,2017,total,17569,944751,53.8,text
+San Salvador,2018,total,14932,726043,48.6,text
+San Salvador,2019,total,13476,726593,53.9,transcribed_from_image
+San Salvador,2020,total,13607,744646,54.7,transcribed_from_image
+San Salvador,2021,total,14779,866093,58.6,text
+San Salvador,2022,total,16432,877111,53.4,transcribed_from_image
+San Vicente,2001,total,24700,973300,39.4,text
+San Vicente,2002,total,19830,786693,39.7,transcribed_from_image
+San Vicente,2003,total,22329,975850,43.7,text
+San Vicente,2004,total,22267,1016080,45.6,text
+San Vicente,2005,total,23024,1053822,45.8,text
+San Vicente,2006,total,17742,822443,46.4,transcribed_from_image
+San Vicente,2009,total,25880,1399995,54.1,text
+San Vicente,2010,total,21721,1167267,53.7,text
+San Vicente,2011,total,22961,1149396,50.1,text
+San Vicente,2012,total,28778,1659013,57.6,text
+San Vicente,2013,total,17073,850799,49.8,text
+San Vicente,2014,total,16886,759182,45.0,text
+San Vicente,2015,total,15939,624950,39.2,text
+San Vicente,2016,total,20068,1204647,60.0,text
+San Vicente,2017,total,17077,903340,52.9,text
+San Vicente,2018,total,18921,742445,39.2,text
+San Vicente,2019,total,12676,639902,50.5,transcribed_from_image
+San Vicente,2020,total,15394,771965,50.1,transcribed_from_image
+San Vicente,2021,total,18872,1101238,58.4,text
+San Vicente,2022,total,14281,763006,53.4,transcribed_from_image
+Santa Ana,2001,total,26100,842800,32.3,text
+Santa Ana,2002,total,36948,1587741,43.0,transcribed_from_image
+Santa Ana,2003,total,21757,1032013,47.4,text
+Santa Ana,2004,total,24878,1138889,45.8,text
+Santa Ana,2005,total,31481,1453155,46.2,text
+Santa Ana,2006,total,35579,1581842,44.5,transcribed_from_image
+Santa Ana,2009,total,28447,1095405,38.5,text
+Santa Ana,2010,total,31417,1458025,46.4,text
+Santa Ana,2011,total,33211,1435701,43.2,text
+Santa Ana,2012,total,32401,1615411,49.9,text
+Santa Ana,2013,total,38268,1854804,48.5,text
+Santa Ana,2014,total,34276,1280088,37.3,text
+Santa Ana,2015,total,32094,1084108,33.8,text
+Santa Ana,2016,total,28658,1150473,40.1,text
+Santa Ana,2017,total,34077,1787610,52.5,text
+Santa Ana,2018,total,35646,1303181,36.6,text
+Santa Ana,2019,total,34770,1663123,47.8,transcribed_from_image
+Santa Ana,2020,total,29453,1461943,49.6,transcribed_from_image
+Santa Ana,2021,total,29734,1440133,48.4,text
+Santa Ana,2022,total,22341,1054085,47.2,transcribed_from_image
+Sonsonate,2001,total,17500,762000,43.5,text
+Sonsonate,2002,total,17222,799413,46.4,transcribed_from_image
+Sonsonate,2003,total,19431,923500,47.5,text
+Sonsonate,2004,total,19800,998438,50.4,text
+Sonsonate,2005,total,26769,1321990,49.4,text
+Sonsonate,2006,total,21823,1092628,50.1,transcribed_from_image
+Sonsonate,2009,total,28492,1492063,52.4,text
+Sonsonate,2010,total,26076,1352321,51.9,text
+Sonsonate,2011,total,27565,1331616,48.3,text
+Sonsonate,2012,total,30255,1671382,55.2,text
+Sonsonate,2013,total,30697,1641966,53.5,text
+Sonsonate,2014,total,32099,1915312,59.7,text
+Sonsonate,2015,total,30721,1200622,39.1,text
+Sonsonate,2016,total,27228,1336052,49.1,text
+Sonsonate,2017,total,35619,1783261,50.1,text
+Sonsonate,2018,total,28658,951349,33.2,text
+Sonsonate,2019,total,28049,1129657,40.3,transcribed_from_image
+Sonsonate,2020,total,30265,1132489,37.4,transcribed_from_image
+Sonsonate,2021,total,22013,938233,42.6,text
+Sonsonate,2022,total,28082,1266678,45.1,transcribed_from_image
+Usulután,2001,total,53900,1889700,35.1,text
+Usulután,2002,total,58185,2319913,39.9,transcribed_from_image
+Usulután,2003,total,50606,2344436,46.3,text
+Usulután,2004,total,59701,2650128,44.4,text
+Usulután,2005,total,56383,2722888,48.3,text
+Usulután,2006,total,53525,2567014,48.0,transcribed_from_image
+Usulután,2009,total,33797,1406652,41.6,text
+Usulután,2010,total,37573,1926990,51.3,text
+Usulután,2011,total,39719,1897485,47.8,text
+Usulután,2012,total,40211,1775495,44.2,text
+Usulután,2013,total,42592,1963762,46.1,text
+Usulután,2014,total,44696,1151108,25.8,text
+Usulután,2015,total,34627,1233310,35.6,text
+Usulután,2016,total,39249,1770723,45.1,text
+Usulután,2017,total,35954,1600743,44.5,text
+Usulután,2018,total,33597,1174371,35.0,text
+Usulután,2019,total,35928,1512473,42.1,transcribed_from_image
+Usulután,2020,total,37347,1532258,41.0,transcribed_from_image
+Usulután,2021,total,40117,2003219,49.9,text
+Usulután,2022,total,35678,1587283,44.5,transcribed_from_image

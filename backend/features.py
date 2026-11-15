@@ -1,43 +1,43 @@
-"""Features agroclimáticas y de erosión. Fórmulas y fuentes en docs/DECISIONES.md."""
+"""Agroclimatic and erosion features. Formulas and sources in docs/DECISIONS.md."""
 import math
 from datetime import date, timedelta
 from statistics import mean
 
 
 def e_s(t):
-    """Presión de vapor de saturación en kPa (T en °C)."""
+    """Saturation vapour pressure in kPa (T in °C)."""
     return 0.6108 * math.exp(17.27 * t / (t + 237.3))
 
 
-def vpd(t, hr):
-    return e_s(t) * (1 - hr / 100)
+def vpd(t, rh):
+    return e_s(t) * (1 - rh / 100)
 
 
-def racha_seca(lluvias, umbral=1.0):
+def longest_dry_run(rains, threshold=1.0):
     mx = cur = 0
-    for mm in lluvias:
-        cur = cur + 1 if mm < umbral else 0
+    for mm in rains:
+        cur = cur + 1 if mm < threshold else 0
         mx = max(mx, cur)
     return mx
 
 
-def rango(d0, d1):
+def date_range(d0, d1):
     return [d0 + timedelta(i) for i in range((d1 - d0).days + 1)]
 
 
-def inicio_lluvias(lluvia, anio, c):
-    """Primer día desde el 1 de mayo con >=20 mm en 3 días y sin racha seca de 7 días en los 21 siguientes."""
-    il = c["inicio_lluvias"]
-    for d in rango(date(anio, *il["desde"]), date(anio, *il["hasta"])):
-        if sum(lluvia.get(d + timedelta(i), 0) for i in range(3)) >= il["mm_3_dias"]:
-            sig = [lluvia.get(d + timedelta(3 + i), 0) for i in range(il["ventana_dias"])]
-            if racha_seca(sig, c["dia_seco_mm"]) < il["racha_seca_dias"]:
+def rain_onset(rain, year, c):
+    """First day from 1 May with >=20 mm in 3 days and no 7-day dry spell in the following 21."""
+    ro = c["rain_onset"]
+    for d in date_range(date(year, *ro["from"]), date(year, *ro["to"])):
+        if sum(rain.get(d + timedelta(i), 0) for i in range(3)) >= ro["mm_3_days"]:
+            following = [rain.get(d + timedelta(3 + i), 0) for i in range(ro["window_days"])]
+            if longest_dry_run(following, c["dry_day_mm"]) < ro["dry_spell_days"]:
                 return d
     return None
 
 
 def ra_mm(lat, doy):
-    """Radiación extraterrestre (FAO-56 ec. 21) en mm/día equivalentes."""
+    """Extraterrestrial radiation (FAO-56 eq. 21) in equivalent mm/day."""
     phi = math.radians(lat)
     dr = 1 + 0.033 * math.cos(2 * math.pi * doy / 365)
     dl = 0.409 * math.sin(2 * math.pi * doy / 365 - 1.39)
@@ -50,71 +50,71 @@ def et0_hargreaves(tmax, tmin, lat, doy):
     return 0.0023 * ((tmax + tmin) / 2 + 17.8) * math.sqrt(max(tmax - tmin, 0)) * ra_mm(lat, doy)
 
 
-def por_fecha(serie):
-    return {date.fromisoformat(r["fecha"]): r for r in serie["diario"]}
+def by_date(series):
+    return {date.fromisoformat(r["date"]): r for r in series["daily"]}
 
 
-def features_anio(dias, anio, siembra_md, cultivo, epoca, lat, c):
-    """Features de un año para una fecha de siembra (mes, día). None si el ciclo no tiene datos completos."""
-    siembra = date(anio, *siembra_md)
-    cu = c["cultivos"][cultivo]
-    cosecha = siembra + timedelta(cu["ciclo_dias"] - 1)
-    if siembra not in dias or cosecha not in dias:
+def year_features(days, year, planting_md, crop, season, lat, c):
+    """Features for one year and a planting date (month, day). None if the cycle lacks complete data."""
+    planting = date(year, *planting_md)
+    cr = c["crops"][crop]
+    harvest = planting + timedelta(cr["cycle_days"] - 1)
+    if planting not in days or harvest not in days:
         return None
-    lluvia = {d: r["lluvia_mm"] for d, r in dias.items() if d.year == anio}
-    ciclo = rango(siembra, cosecha)
-    if epoca == "primera":
-        v0, v1 = c["canicula"]["ventana"]
-        ventana, sensible = rango(date(anio, *v0), date(anio, *v1)), ciclo
+    rain = {d: r["rain_mm"] for d, r in days.items() if d.year == year}
+    cycle = date_range(planting, harvest)
+    if season == "primera":
+        w0, w1 = c["dry_spell"]["window"]
+        window, sensitive = date_range(date(year, *w0), date(year, *w1)), cycle
     else:
-        # en postrera la canícula ya pasó y el final del ciclo cae en la estación seca esperada:
-        # racha y estrés se miden de la siembra al fin de la floración (etapa sensible)
-        ventana = sensible = rango(siembra, siembra + timedelta(cu["floracion"][1]))
-    flor = rango(siembra + timedelta(cu["floracion"][0]), siembra + timedelta(cu["floracion"][1]))
-    bl = c["estres_hidrico"]["bloque_dias"]
-    bloques = [sensible[i:i + bl] for i in range(0, len(sensible) - bl + 1, bl)]
-    estres = [sum(dias[d]["lluvia_mm"] for d in b) /
-              sum(et0_hargreaves(dias[d]["t_max_c"], dias[d]["t_min_c"], lat, d.timetuple().tm_yday) for d in b)
-              for b in bloques]
-    fin_anio = date(anio, 12, 31)
+        # in postrera the canícula has already passed and the end of the cycle falls in the expected dry season:
+        # the dry spell and stress are measured from planting to the end of flowering (the sensitive stage)
+        window = sensitive = date_range(planting, planting + timedelta(cr["flowering"][1]))
+    flowering = date_range(planting + timedelta(cr["flowering"][0]), planting + timedelta(cr["flowering"][1]))
+    bl = c["water_stress"]["block_days"]
+    blocks = [sensitive[i:i + bl] for i in range(0, len(sensitive) - bl + 1, bl)]
+    stress = [sum(days[d]["rain_mm"] for d in b) /
+              sum(et0_hargreaves(days[d]["t_max_c"], days[d]["t_min_c"], lat, d.timetuple().tm_yday) for d in b)
+              for b in blocks]
+    year_end = date(year, 12, 31)
     return {
-        "anio": anio,
-        "inicio_lluvias": inicio_lluvias(lluvia, anio, c),
-        "racha_canicula": racha_seca([dias[d]["lluvia_mm"] for d in ventana if d in dias], c["dia_seco_mm"]),
-        "lluvia_ciclo": sum(dias[d]["lluvia_mm"] for d in ciclo),
-        "lluvia_hasta_corte": sum(dias[d]["lluvia_mm"] for d in rango(date(anio, 5, 1), date(anio, *c["canicula"]["ventana"][0]))),
-        "dias_calor": sum(dias[d]["t_max_c"] > c["calor"]["t_max_c"] for d in flor),
-        "vpd_floracion": mean(vpd((dias[d]["t_max_c"] + dias[d]["t_min_c"]) / 2, dias[d]["hr_pct"]) for d in flor),
-        "frac_estres": sum(x < c["estres_hidrico"]["cociente_riesgo"] for x in estres) / len(estres),
-        "lluvia_anual": sum(lluvia.values()) if fin_anio in dias else None,
+        "year": year,
+        "rain_onset": rain_onset(rain, year, c),
+        "dry_spell_days": longest_dry_run([days[d]["rain_mm"] for d in window if d in days], c["dry_day_mm"]),
+        "cycle_rain_mm": sum(days[d]["rain_mm"] for d in cycle),
+        "rain_to_cutoff_mm": sum(days[d]["rain_mm"] for d in date_range(date(year, 5, 1), date(year, *c["dry_spell"]["window"][0]))),
+        "heat_days": sum(days[d]["t_max_c"] > c["heat"]["t_max_c"] for d in flowering),
+        "flowering_vpd_kpa": mean(vpd((days[d]["t_max_c"] + days[d]["t_min_c"]) / 2, days[d]["rh_pct"]) for d in flowering),
+        "stress_fraction": sum(x < c["water_stress"]["risk_ratio"] for x in stress) / len(stress),
+        "annual_rain_mm": sum(rain.values()) if year_end in days else None,
     }
 
 
-# --- RUSLE como índice relativo: A = R·K·LS·C·P ---
+# --- RUSLE as a relative index: A = R·K·LS·C·P ---
 
-def rusle_R(p_anual):
-    """Erosividad anual (MJ·mm/ha/h/año) desde lluvia anual. Renard y Freimund (1994)."""
-    return 0.0483 * p_anual ** 1.61 if p_anual < 850 else 587.8 - 1.219 * p_anual + 0.004105 * p_anual ** 2
+def rusle_R(p_annual):
+    """Annual erosivity (MJ·mm/ha/h/yr) from annual rainfall. Renard and Freimund (1994)."""
+    return 0.0483 * p_annual ** 1.61 if p_annual < 850 else 587.8 - 1.219 * p_annual + 0.004105 * p_annual ** 2
 
 
-def rusle_K(arena, limo, arcilla, oc):
-    """Erodabilidad (t·ha·h/ha/MJ/mm) desde textura (%) y carbono orgánico (%). Williams (1995), EPIC."""
-    sn1 = 1 - arena / 100
-    f = ((0.2 + 0.3 * math.exp(-0.0256 * arena * (1 - limo / 100)))
-         * (limo / (arcilla + limo)) ** 0.3
+def rusle_K(sand, silt, clay, oc):
+    """Erodibility (t·ha·h/ha/MJ/mm) from texture (%) and organic carbon (%). Williams (1995), EPIC."""
+    sn1 = 1 - sand / 100
+    f = ((0.2 + 0.3 * math.exp(-0.0256 * sand * (1 - silt / 100)))
+         * (silt / (clay + silt)) ** 0.3
          * (1 - 0.25 * oc / (oc + math.exp(3.72 - 2.95 * oc)))
          * (1 - 0.7 * sn1 / (sn1 + math.exp(-5.51 + 22.9 * sn1))))
     return 0.1317 * f
 
 
-def rusle_LS(pendiente_pct):
-    """Factor de pendiente de McCool et al. (1987) con longitud de 22.13 m (L = 1, supuesto)."""
-    s = math.sin(math.atan(pendiente_pct / 100))
-    return 10.8 * s + 0.03 if pendiente_pct < 9 else 16.8 * s - 0.5
+def rusle_LS(slope_pct):
+    """Slope factor from McCool et al. (1987) with a 22.13 m length (L = 1, assumption)."""
+    s = math.sin(math.atan(slope_pct / 100))
+    return 10.8 * s + 0.03 if slope_pct < 9 else 16.8 * s - 0.5
 
 
 def rusle_C(ndvi):
-    """Cobertura desde NDVI. Van der Knijff et al. (2000): C = exp(-2·NDVI/(1-NDVI))."""
+    """Cover from NDVI. Van der Knijff et al. (2000): C = exp(-2·NDVI/(1-NDVI))."""
     return math.exp(-2 * ndvi / (1 - ndvi)) if ndvi < 1 else 0.0
 
 

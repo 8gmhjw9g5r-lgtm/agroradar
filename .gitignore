@@ -1,4 +1,6 @@
 .env
 __pycache__/
+.venv/
 data/cache/
-data/appeears/cola.jsonl
+data/appeears/queue.jsonl
+GISportal-master.zip

@@ -1,0 +1,89 @@
+# Every value in this file is an ASSUMPTION until an agronomist validates it,
+# except those with a source in docs/DECISIONS.md.
+
+validation:
+  lat: [12.8, 14.5]          # assumption: approximate bounds of El Salvador
+  lon: [-90.2, -87.6]
+  max_plots: 10
+  planting_date_months: 12
+
+history_start: "1991-01-01"
+normal_period: [1991, 2020]
+
+rain_onset:
+  from: [5, 1]               # month, day
+  to: [8, 31]
+  mm_3_days: 20
+  dry_spell_days: 7
+  window_days: 21
+dry_day_mm: 1.0
+late_onset_days: 15          # late onset = more than 15 days after the historical median
+
+dry_spell:                   # the canícula (mid-summer drought)
+  window: [[7, 15], [8, 31]]
+  threshold_days: 10
+heat:
+  t_max_c: 35
+  threshold_days: 3
+water_stress:
+  block_days: 10
+  risk_ratio: 0.5
+rain_anomaly_sd: -1
+
+crops:                       # cycle and flowering in days after planting
+  maize: {cycle_days: 120, flowering: [55, 75]}
+  bean: {cycle_days: 75, flowering: [35, 50]}
+  green_manure: {cycle_days: 90, flowering: [45, 60]}
+season_by_month:             # if season is missing, it is inferred from the planting month
+  primera: [1, 2, 3, 4, 5, 6, 7]
+  postrera: [8, 9, 10, 11, 12]
+
+satellite:
+  bare_soil_ndvi: 0.3
+  min_valid: 0.30
+  pilot_zones:               # assumption: Dry Corridor points to be validated
+    # calibration: MAG yield series (season column of the CSV) and the season each one models.
+    # Only series whose yield matches the modelled season (see DECISIONS.md).
+    san_miguel: {lat: 13.48, lon: -88.18, radius_km: 15, department: San Miguel,
+                 calibration: [{series: postrera, season: postrera}, {series: primera, season: primera}]}
+    la_union: {lat: 13.34, lon: -87.84, radius_km: 15, department: La Unión,
+               calibration: [{series: postrera, season: postrera}]}
+    chalatenango: {lat: 14.04, lon: -88.94, radius_km: 15, department: Chalatenango,
+                   calibration: [{series: total, season: primera}]}
+
+rusle:
+  K_default: 0.03            # t·ha·h/(ha·MJ·mm)
+  default_slope_pct: 10
+  C_by_cover: {bare_soil: 0.45, stubble: 0.2, green_manure: 0.1}
+  C_default: 0.3
+  erosion_ref: 200           # A index treated as "risk 1"; relative only
+
+nitrogen:
+  N_ref_g_kg: 3.0            # total N >= 3 g/kg -> risk 0
+  fixation_kg_ha: {maize: 0, bean: 40, green_manure: 80}
+  uptake_kg_ha: {maize: 60, bean: 40, green_manure: 0}
+  direction_threshold_kg_ha: 20
+
+model:
+  bootstrap: 1000
+  seed: 42
+  z80: 1.2816
+  min_analogs: 8
+  analog_onset_days: 10
+  analog_rain_frac: 0.25
+  priority_weight: 2.0
+  nitrogen_weight_without_analysis: 0.25
+  auc_publishable: 0.70
+  auc_minimum: 0.60
+  enso_oni_threshold: 0.5
+
+variables_by_priority:
+  water: [dry_spell, heat, moisture]
+  erosion: [erosion]
+  nitrogen: [nitrogen, greenness]
+  market: []                 # no market data in the MVP
+
+rotations:                   # E < 1 lowers the risk; see DECISIONS.md
+  maize_maize: {crops: [maize, maize], base: true, effects: {}}
+  maize_bean: {crops: [maize, bean], effects: {nitrogen: 0.85, erosion: 0.9}}
+  maize_green_manure: {crops: [maize, green_manure], effects: {nitrogen: 0.6, erosion: 0.6, moisture: 0.9}}

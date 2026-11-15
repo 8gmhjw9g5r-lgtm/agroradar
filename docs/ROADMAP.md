@@ -1,50 +1,58 @@
 # Roadmap
 
-Estado al 2026-11-15. Detalle técnico y supuestos en `DECISIONES.md`.
+Status as of 2026-11-15. Technical detail and assumptions in `DECISIONS.md`.
 
-## Fase actual: 3 de 7, validación y calibración (a mitad de camino)
+## Current phase: 3 of 7, validation and calibration (about halfway)
 
-| Área | Estado |
+| Area | Status |
 |---|---|
-| Concepto y spec (éxito = rendimiento sobre el p25 histórico de la zona; 3 rotaciones; índice siempre con rango) | ✅ Hecho |
-| Datos: NASA POWER con caché, ONI, Open-Meteo, cliente de SoilGrids | ✅ Construido |
-| Modelo: Wilson, análogos, gamma, ENSO, índice por bootstrap, RUSLE, AUC | ✅ Construido |
-| API, página y agente Gemini con verificador de reglas | ✅ Construido |
-| Plan de pruebas de 12 capas y prueba de repo sin llaves | ✅ Escrito |
-| Dejar un año fuera (Brier) | ✅ Hecho |
-| Calibración MAG v2 | ⚠️ Primera AUC 0.90 (se publica); postrera AUC 0.33 (no se publica, solo riesgos) |
-| AppEEARS (SMAP, NASADEM, HLS) | ❌ Sin descargar |
-| SoilGrids | ❌ No responde; cliente sin probar con respuesta real |
-| Fuentes de la tabla E, la tabla de nitrógeno y los umbrales | ❌ Todo SUPUESTO |
+| Concept and spec (success = yield above the zone's 25th percentile; 3 rotations; index always with a range) | ✅ Done |
+| Data: NASA POWER with cache, ONI, Open-Meteo, SoilGrids client | ✅ Built |
+| Model: Wilson, analogs, gamma, ENSO, bootstrap index, RUSLE, AUC | ✅ Built |
+| API, page and Gemini agent with a rule checker | ✅ Built |
+| 12-layer test plan and no-keys test | ✅ Written, 33 tests pass |
+| Leave-one-year-out (Brier) | ✅ Done |
+| Version control (git) and Python environment (`.venv`, `requirements.txt`) | ✅ Done |
+| Code, data and docs in English; page and Gemini in Spanish or English | ✅ Done |
+| NASA GIBS satellite layers on the map (viewing only) | ✅ Done |
+| MAG calibration v2 | ⚠️ Primera AUC 0.90 (published); postrera AUC 0.33 (not published, risks only) |
+| AppEEARS (SMAP, NASADEM, HLS) | ❌ Not downloaded |
+| SoilGrids | ❌ Not responding; client untested against a real reply |
+| Sources for table E, the nitrogen table and the thresholds | ❌ All ASSUMPTION |
 
-## Inmediato
-1. Control de versiones (git) y primer commit.
-2. Confirmar que el entorno corre: dependencias y `python -m unittest -v tests.test_mvp`.
-3. Congelar la calibración v2 como línea base. Escribir las hipótesis de postrera en `DECISIONES.md` **antes** de probarlas (riesgo de sobreajuste: 2 cambios de diseño con 50 puntos).
+## Next
+1. Freeze calibration v2 as the baseline. Write the postrera hypotheses in `DECISIONS.md` **before** testing them
+   (overfitting risk: 2 design changes on 50 points).
 
-## Fase 3 (ahora): cerrar validación y calibración
-- Postrera: buscar qué explica los malos años. Opciones: estaciones locales (MARN), fecha de retiro de lluvias, reportes de daño del MAG o FEWS NET, plagas, la celda de 0.5° de POWER. El exceso de lluvia ya se descartó. Recalibrar con `python -m backend.validar mag`.
-- Umbral de día seco: POWER casi no da días < 1 mm (canícula larga en 3 de 36 años). Contrastar con estaciones.
-- **Listo cuando:** postrera llega a AUC ≥ 0.60 o queda formalmente como "solo riesgos", y primera se sostiene con más años.
+## Phase 3 (now): finish validation and calibration
+- Postrera: find what explains the bad years. Options: local stations (MARN), rain retreat date, MAG or FEWS NET damage
+  reports, pests, the 0.5° POWER cell. Excess rain has already been ruled out. Recalibrate with `python -m backend.validate mag`.
+- Dry-day threshold: POWER almost never gives days < 1 mm (long canícula in 3 of 36 years). Compare with stations.
+- Write the root-zone saturation hypothesis for postrera (RZSM > 95% for > 3 days; see `SOIL_MOISTURE_ALERTS.md`),
+  and test the wider maize sensitive window as a calibration variant, not a switch.
+- **Done when:** postrera reaches AUC ≥ 0.60 or is formally limited to "risks only", and primera holds up with more years.
 
-## Fase 4: completar los datos
-- Cuenta Earthdata, pedidos de AppEEARS para las 3 zonas piloto y conversión al CSV de `data/appeears/LEEME.md`.
-- SoilGrids funcionando, o un K y un N locales.
-- Fuentes para la tabla E, que es la parte más débil del índice.
-- **Listo cuando:** pendiente, verdor y suelo salen de datos reales y la evidencia C queda solo donde de verdad falta algo.
+## Phase 4: complete the data
+- Earthdata account, AppEEARS requests for the 3 pilot zones and conversion to the CSV in `data/appeears/README.md`.
+- Root-zone SMAP (`smap_rz`) in the AppEEARS CSV and reader: days of saturation and available-water anomaly per season.
+- SoilGrids working, or a local K and N (and field capacity / wilting point for available water).
+- Sources for table E, the weakest part of the index.
+- **Done when:** slope, greenness and soil come from real data and evidence C is left only where something is truly missing.
 
-## Fase 5: revisión experta y piloto de campo
-- Un agrónomo (CENTA, CRS) revisa `config/umbrales.yaml` y cada arista de `config/grafo.yaml`.
-- Prueba con agricultores de San Miguel, La Unión y Chalatenango: que el español se entienda, que las 3 preguntas de campo sirvan y que el rango se comprenda.
-- **Listo cuando:** los umbrales están aprobados por un experto y hay notas de agricultores reales.
+## Phase 5: expert review and field pilot
+- An agronomist (CENTA, CRS) reviews `config/thresholds.yaml` and every edge in `config/graph.yaml`.
+- Test with farmers in San Miguel, La Unión and Chalatenango: that the Spanish is clear, that the 3 field questions help
+  and that the range is understood.
+- **Done when:** thresholds are approved by an expert and there are notes from real farmers.
 
-## Fase 6: robustez y despliegue
-- CI que corra las pruebas, despliegue y decidir cómo se maneja la llave de Gemini en un servicio alojado.
-- Revisar los términos de Open-Meteo (solo uso no comercial) antes de ampliar.
-- Manejo de errores cuando una API no responde.
-- **Listo cuando:** hay URL pública, el CI pasa y están publicadas las páginas sobre los datos y el método.
+## Phase 6: hardening and deployment
+- CI that runs the tests, a deployment, and a decision on how the Gemini key works in a hosted service.
+- Check Open-Meteo's terms (non-commercial use only) before going wider.
+- Error handling when an API does not respond.
+- **Done when:** there is a public URL, CI passes, and the pages about the data and the method are published.
 
-## Fase 7: ampliar
-- Atender la cola de parcelas fuera del piloto (`data/appeears/cola.jsonl`).
-- Agregar la prioridad de mercado (hoy sin datos).
-- Recalibrar cuando salgan nuevos anuarios del MAG (restringidos desde 2026).
+## Phase 7: expand
+- Process the queue of plots outside the pilot (`data/appeears/queue.jsonl`).
+- Add the market priority (no data today).
+- A season monitor with the five soil-moisture alert colours, using check-in-the-field messages, not irrigation orders.
+- Recalibrate when new MAG yearbooks come out (restricted since 2026).
