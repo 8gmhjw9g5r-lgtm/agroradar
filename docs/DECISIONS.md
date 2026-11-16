@@ -43,6 +43,21 @@ translated and evaluated in `docs/SOIL_MOISTURE_ALERTS.md`. Nothing from it is i
 root-zone SMAP in the AppEEARS reader, and RZSM saturation as a postrera hypothesis. Rejected: irrigation instructions
 and 24-hour plot alerts (rainfed farms; 9 km SMAP with days of delay).
 
+## Data loaded in advance, never live (2026-11-15)
+- **AppEEARS** is asynchronous (request, wait, download), so it cannot run during a calculation.
+  `python -m backend.appeears` requests point samples for each pilot zone (centre + 8 points on a 5 km ring) and converts
+  them to `data/appeears/<zone>.csv`. Products checked in the public AppEEARS catalogue: `MOD13Q1.061`
+  (`_250m_16_days_NDVI`, scale 0.0001, fill -3000; `_250m_16_days_pixel_reliability`, 0 good / 1 marginal kept as valid),
+  `NASADEM_NC.001` (`NASADEM_HGT`, m), `SPL4SMGP.008` (`Geophysical_Data_sm_surface` and `_sm_rootzone`, m³/m³,
+  3-hourly averaged to daily).
+- **Slope** is computed from 5 elevation points around each sample (±2 arc-seconds) by central differences, so no GIS
+  library is needed. The zone slope is the mean over 9 samples: it describes the zone, not a single plot (**ASSUMPTION**).
+- **SoilGrids** is saved per pilot zone by `python -m backend.soil` (`data/soil/<zone>.json`); the app no longer calls it
+  live. Plots outside the pilot zones keep the default K and report `soil_data_pending`.
+- The results say which values are still assumed (slope, greenness, soil), because until these files exist the result
+  depends almost only on NASA POWER climate, and neighbouring farms in the same 0.5° cell get the same climate.
+- The Open-Meteo 7-day forecast is now shown on the results screen; it never changes the index.
+
 ## APIs verified with a real call (2026-11-15)
 
 | Source | Result |

@@ -363,6 +363,69 @@ class SatelliteViews(unittest.TestCase):
         self.assertTrue(all(v["view"] in VIEWS and v["reasons"] for v in out["satellite_views"]))
 
 
+class AppEEARSAndSoil(unittest.TestCase):
+    """The download script's request builder and converter, with no network or login."""
+
+    def test_task_body(self):
+        from backend import appeears as A
+        zones = C["satellite"]["pilot_zones"]
+        ndvi = A.task_body("ndvi", zones, today=date(2026, 11, 15))
+        self.assertEqual(ndvi["params"]["dates"], [{"startDate": "02-18-2000", "endDate": "11-15-2026"}])
+        self.assertEqual({l["product"] for l in ndvi["params"]["layers"]}, {"MOD13Q1.061"})
+        self.assertEqual(len(ndvi["params"]["coordinates"]), 9 * len(zones))
+        self.assertEqual(len(A.task_body("dem", zones)["params"]["coordinates"]), 45 * len(zones))
+        self.assertEqual(len(A.task_body("smap", zones)["params"]["coordinates"]), len(zones))
+
+    def test_convert_and_read(self):
+        from backend import appeears as A
+        lat = 13.48
+        step_m = A.DEM_STEP_DEG * A.M_PER_DEG
+        with tempfile.TemporaryDirectory() as d:
+            raw, out = Path(d) / "raw", Path(d)
+            raw.mkdir()
+            with open(raw / "agroradar_ndvi-results.csv", "w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["ID", "Category", "Latitude", "Longitude", "Date",
+                            "MOD13Q1_061__250m_16_days_NDVI", "MOD13Q1_061__250m_16_days_pixel_reliability"])
+                for a in range(2016, 2026):
+                    w.writerow(["z-0", "z", lat, -88.18, f"{a}-07-12", 6000, 0])  # raw integer, scaled to 0.6
+                    w.writerow(["z-1", "z", lat, -88.18, f"{a}-07-12", 0.9, 3])   # cloudy: kept but not ok
+                w.writerow(["z-0", "z", lat, -88.18, "2025-01-01", -3000, 0])     # fill value: dropped
+            with open(raw / "agroradar_dem-results.csv", "w", newline="") as f:  # a plane rising 10% to the north
+                w = csv.writer(f)
+                w.writerow(["ID", "Category", "Latitude", "Longitude", "Date", "NASADEM_NC_001_NASADEM_HGT"])
+                for nb, dz in {"c": 0, "n": 1, "s": -1, "e": 0, "w": 0}.items():
+                    w.writerow([f"z-0-{nb}", "z", lat, -88.18, "2000-02-11", 100 + dz * 0.10 * step_m])
+            with open(raw / "agroradar_smap-results.csv", "w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["ID", "Category", "Latitude", "Longitude", "Date",
+                            "SPL4SMGP_008_Geophysical_Data_sm_surface", "SPL4SMGP_008_Geophysical_Data_sm_rootzone"])
+                w.writerow(["z-0", "z", lat, -88.18, "2025-06-01T01:30:00", 0.30, 0.20])
+                w.writerow(["z-0", "z", lat, -88.18, "2025-06-01T04:30:00", 0.40, 0.30])
+                w.writerow(["z-0", "z", lat, -88.18, "2025-06-02T01:30:00", -9999, 0.25])
+            summary = A.convert(raw, out)
+            self.assertEqual(summary["z"], {"ndvi": 20, "slope": 1, "smap": 1, "smap_rz": 2})
+            with open(out / "z.csv") as fh:
+                rows = list(csv.DictReader(fh))
+            self.assertIn({"date": "2025-06-01", "layer": "smap", "value": "0.35", "quality_ok": "1"}, rows)
+            self.assertEqual(next(r["value"] for r in rows if r["layer"] == "slope"), "10.0")
+            s = satellite.read("z", (5, 25), 120, C, d=out)
+        self.assertEqual(s["slope_pct"], 10.0)
+        self.assertAlmostEqual(s["ndvi_by_year"][2020], 0.6)  # the cloudy 0.9 does not count
+        self.assertEqual(s["evidence"], "B")
+
+    def test_saved_soil(self):
+        from backend import soil
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(soil.saved("san_miguel", Path(d)))
+            fake = lambda lat, lon, timeout: {"source": "soilgrids", "clay": 30, "sand": 40, "silt": 30, "oc_pct": 1.2, "n_g_kg": 1.5}
+            with mock.patch.object(soil, "cfg", return_value=C):
+                report = soil.prefetch(Path(d), fetch=fake)
+            self.assertTrue(all(v == "saved" for v in report.values()))
+            self.assertEqual(soil.saved("san_miguel", Path(d))["clay"], 30)
+            self.assertIsNone(soil.saved(None, Path(d)))
+
+
 class NoKeys(unittest.TestCase):
     def test_repo_has_no_keys(self):
         pattern = re.compile(r"AIza[0-9A-Za-z_\-]{35}|sk-[A-Za-z0-9]{20,}|GEMINI_API_KEY[ \t]*=[ \t]*\S+")

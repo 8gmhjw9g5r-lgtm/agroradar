@@ -4,3 +4,6 @@ __pycache__/
 data/cache/
 data/appeears/queue.jsonl
 GISportal-master.zip
+data/appeears/raw/
+data/appeears/tasks.json
+.DS_Store

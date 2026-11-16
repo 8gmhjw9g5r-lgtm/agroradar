@@ -39,6 +39,20 @@ python -m backend.validate mag
 ```
 Computes the AUC against MAG department yields (`data/mag_yields.csv`, 2001-2022) and writes `data/calibration.json`. Current result: primera AUC 0.90 (published); postrera AUC 0.33 (not published, risks only). See `docs/DECISIONS.md`.
 
+## Satellite and soil data (run by us, not by the app)
+
+The app only reads files saved in the project; it never waits on AppEEARS or SoilGrids.
+
+```bash
+python -m backend.appeears submit      # needs EARTHDATA_USERNAME / EARTHDATA_PASSWORD in .env
+python -m backend.appeears status      # AppEEARS takes minutes to hours
+python -m backend.appeears download    # writes data/appeears/<zone>.csv
+```
+```bash
+python -m backend.soil                 # saves SoilGrids values per pilot zone in data/soil/
+```
+Run them once, then once a season (soil only when the source changes). Details in `data/appeears/README.md`.
+
 ## API
 
 `POST /api/farm` with:
@@ -70,6 +84,8 @@ backend/clients/        POWER with cache; Open-Meteo, SoilGrids, ONI
 backend/features.py     rain onset, dry spell, VPD, ET0, RUSLE
 backend/models.py       Wilson, analogs, gamma, ENSO, bootstrap index, trend, AUC
 backend/satellite.py    preloaded AppEEARS reader
+backend/appeears.py     AppEEARS download and conversion script (run by us)
+backend/soil.py         SoilGrids values saved per pilot zone (run by us)
 backend/i18n.py         Spanish and English messages
 backend/views.py        picks which satellite views to show, with reasons
 backend/agent/          prompts (es, en) and Gemini call with a rule checker

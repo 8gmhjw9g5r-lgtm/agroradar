@@ -8,6 +8,7 @@ from backend import DATA, ROOT, cfg, graph
 from backend import features as F
 from backend import models as M
 from backend import satellite
+from backend import soil as soil_store
 from backend.agent import gemini
 from backend.clients import extras, power
 from backend.i18n import lang_of, t
@@ -112,13 +113,13 @@ def analyze_plot(p, c, today, oni, phase, lang="es"):
         slope, slope_src = c["rusle"]["default_slope_pct"], "assumed"
         assumptions.append(f"default_slope_{slope}pct")
         missing.append("slope_pct")
-    soil = extras.soil(lat, lon)
+    soil = soil_store.saved(zone)  # saved in advance by `python -m backend.soil`; never fetched live
     if soil:
         K = F.rusle_K(soil["sand"], soil["silt"], soil["clay"], soil["oc_pct"])
     else:
         K = c["rusle"]["K_default"]
         assumptions.append(f"K_default_{K}")
-        missing.append("soilgrids_no_response")
+        missing.append("soil_data_pending")
     LS = F.rusle_LS(slope)
     ndvi = sat["ndvi_by_year"] if sat and sat["evidence"] == "B" else {}
     C_dec = c["rusle"]["C_by_cover"].get(p.get("current_cover"), c["rusle"]["C_default"])
@@ -210,6 +211,7 @@ def analyze_plot(p, c, today, oni, phase, lang="es"):
                         "flowering_vpd_kpa": round(mean(f["flowering_vpd_kpa"] for f in feats), 2)},
             "slope_pct": slope, "slope_source": slope_src, "mean_erosion_index": round(mean(eros), 1),
             "soil_moisture_anomaly_sd": sat.get("soil_moisture_anomaly_sd") if sat else None,
+            "rootzone_moisture_anomaly_sd": sat.get("rootzone_moisture_anomaly_sd") if sat else None,
             "greenness": {"mean_ndvi": round(mean(ndvi.values()), 2) if ndvi else None,
                           "trend_10_years": sat.get("greenness_trend") if sat else None,
                           "bare_soil_days": sat["bare_soil_days"] if sat else None},
@@ -281,8 +283,10 @@ def analyze_farm(farm, today=None, with_agent=True):
 # --- web server ---
 from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
 
 app = FastAPI(title="AgroRadar")
+app.mount("/assets", StaticFiles(directory=ROOT / "frontend" / "assets"), name="assets")  # logo and icon
 
 
 @app.post("/api/farm")

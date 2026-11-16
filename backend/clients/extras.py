@@ -30,7 +30,7 @@ def forecast(lat, lon, get=_get):
 _soil_down_since = 0.0
 
 
-def soil(lat, lon, get=_get, cache=CACHE / "soilgrids"):
+def soil(lat, lon, get=_get, cache=CACHE / "soilgrids", timeout=8):
     """SoilGrids 0-5 cm. Written from memory: it did not respond on 2026-11-15; units to be confirmed."""
     global _soil_down_since
     file = cache / f"{lat:.2f}_{lon:.2f}.json"
@@ -41,7 +41,7 @@ def soil(lat, lon, get=_get, cache=CACHE / "soilgrids"):
     try:
         raw = json.loads(get(f"https://rest.isric.org/soilgrids/v2.0/properties/query?lon={lon}&lat={lat}"
                              "&property=clay&property=sand&property=silt&property=soc&property=nitrogen"
-                             "&depth=0-5cm&value=mean", timeout=8))
+                             "&depth=0-5cm&value=mean", timeout=timeout))
         v = {l["name"]: l["depths"][0]["values"]["mean"] for l in raw["properties"]["layers"]}
         out = {"source": "soilgrids", "clay": v["clay"] / 10, "sand": v["sand"] / 10, "silt": v["silt"] / 10,
                "oc_pct": v["soc"] / 100, "n_g_kg": v["nitrogen"] / 100}

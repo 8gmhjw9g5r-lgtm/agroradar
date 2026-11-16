@@ -1,8 +1,8 @@
 """Reader for the AppEEARS series preloaded per pilot zone.
 
 Normalized format (see data/appeears/README.md): date,layer,value,quality_ok
-with layer in {ndvi, smap, slope}. Conversion from the raw AppEEARS CSV is done when
-the files are downloaded, because the layer names are not verified yet.
+with layer in {ndvi, smap, smap_rz, slope}. The raw AppEEARS files are converted to this format by
+`python -m backend.appeears` (see backend/appeears.py).
 """
 import csv
 import json
@@ -57,11 +57,12 @@ def read(zone, planting_md, cycle_days, c, d=DIR, today=None):
         out["bare_soil_days"][a] = round(365 * sum(v < c["satellite"]["bare_soil_ndvi"] for v in year) / len(year))
     peaks = [max(v for f, v in valid if f.year == a) for a in sorted({f.year for f, _ in valid})][-10:]
     out["greenness_trend"] = trend(peaks)["direction"] if len(peaks) >= 4 else None
-    smap = [(f, v) for f, v, ok in by_layer.get("smap", []) if ok]
-    if smap:  # current season (90 days) against the same window in earlier years
-        window = lambda f: 0 <= today.timetuple().tm_yday - f.timetuple().tm_yday < 90  # does not cross the year
-        hist = [v for f, v in smap if window(f) and f.year < today.year]
-        cur = [v for f, v in smap if window(f) and f.year == today.year]
+    # current season (90 days) against the same window in earlier years; surface (smap) and root zone (smap_rz)
+    window = lambda f: 0 <= today.timetuple().tm_yday - f.timetuple().tm_yday < 90  # does not cross the year
+    for layer, key in (("smap", "soil_moisture_anomaly_sd"), ("smap_rz", "rootzone_moisture_anomaly_sd")):
+        series = [(f, v) for f, v, ok in by_layer.get(layer, []) if ok]
+        hist = [v for f, v in series if window(f) and f.year < today.year]
+        cur = [v for f, v in series if window(f) and f.year == today.year]
         if len(hist) > 1 and cur and pstdev(hist) > 0:
-            out["soil_moisture_anomaly_sd"] = round((mean(cur) - mean(hist)) / pstdev(hist), 2)
+            out[key] = round((mean(cur) - mean(hist)) / pstdev(hist), 2)
     return out

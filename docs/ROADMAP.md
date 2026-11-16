@@ -16,7 +16,7 @@ Status as of 2026-11-15. Technical detail and assumptions in `DECISIONS.md`.
 | Code, data and docs in English; page and Gemini in Spanish or English | ✅ Done |
 | NASA GIBS satellite layers on the map (viewing only) | ✅ Done |
 | MAG calibration v2 | ⚠️ Primera AUC 0.90 (published); postrera AUC 0.33 (not published, risks only) |
-| AppEEARS (SMAP, NASADEM, HLS) | ❌ Not downloaded |
+| AppEEARS (MODIS NDVI, NASADEM, SMAP) | ⚠️ NDVI downloaded 2026-11-15 (2000–2026, 3 zones); slope and SMAP still processing at NASA |
 | SoilGrids | ❌ Not responding; client untested against a real reply |
 | Sources for table E, the nitrogen table and the thresholds | ❌ All ASSUMPTION |
 
@@ -32,10 +32,24 @@ Status as of 2026-11-15. Technical detail and assumptions in `DECISIONS.md`.
   and test the wider maize sensitive window as a calibration variant, not a switch.
 - **Done when:** postrera reaches AUC ≥ 0.60 or is formally limited to "risks only", and primera holds up with more years.
 
-## Phase 4: complete the data
-- Earthdata account, AppEEARS requests for the 3 pilot zones and conversion to the CSV in `data/appeears/README.md`.
-- Root-zone SMAP (`smap_rz`) in the AppEEARS CSV and reader: days of saturation and available-water anomaly per season.
-- SoilGrids working, or a local K and N (and field capacity / wilting point for available water).
+## Phase 4: complete the data (started 2026-11-15)
+Today only NASA POWER feeds the calculation; greenness, slope and soil use assumed values, so neighbouring farms get
+the same result. This phase adds the per-zone data.
+- [x] **AppEEARS download script** (`python -m backend.appeears`), run by us, not by the app: submits point requests for
+  the pilot zones, waits, downloads and converts to the CSV in `data/appeears/README.md`. Products verified in the
+  AppEEARS catalogue: `MOD13Q1.061` NDVI + pixel reliability (greenness), `NASADEM_NC.001` (slope),
+  `SPL4SMGP.008` surface and root-zone moisture (`smap`, `smap_rz`). Run once now, then once a season.
+- [ ] Later: let the script also process the queue of plots outside the zones (`data/appeears/queue.jsonl`).
+- [x] **You:** create a free NASA Earthdata account and put the login in `.env`; run the script.
+- [x] Greenness (NDVI) downloaded and used by the index. In La Unión 3 of 9 sample points fall on the Gulf of Fonseca and are dropped as water.
+- [ ] Slope (NASADEM) and moisture (SMAP): run `python -m backend.appeears download` again when `status` shows `done`.
+- [x] Page follows the AgroRadar design system (`design/`): palette B, Atkinson Hyperlegible, 8-pt spacing, logo.
+- [ ] **Soil saved in advance**: `python -m backend.soil` stores SoilGrids values per pilot zone in `data/soil/`; the app
+  reads those files and never waits on SoilGrids live. Run it when SoilGrids is back up.
+- [ ] Root-zone SMAP in the reader: days of saturation and available-water anomaly per season.
+- [ ] Later: local soil data (CENTA, MAG) to replace SoilGrids; field capacity / wilting point for available water.
+- [x] Results say plainly which parts are climate-only and which use assumed values.
+- [x] Show the Open-Meteo 7-day forecast on the results screen (it was fetched but never shown).
 - Sources for table E, the weakest part of the index.
 - **Done when:** slope, greenness and soil come from real data and evidence C is left only where something is truly missing.
 

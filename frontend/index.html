@@ -4,75 +4,174 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AgroRadar</title>
+<link rel="icon" type="image/png" href="/assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Public+Sans:wght@400;600&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root { --soil:#6b4f2a; --crop:#2f6b3a; --crop-soft:#e6efe7; --bg:#f6f3ec; --border:#d9d2c3; --text:#2a2620; --muted:#666; --alert:#a33; --warn:#b58a1b; }
+  /* AgroRadar design system, palette B (accessible). Reference: design/design-system.webp */
+  :root {
+    --evergreen:#185C3B; --evergreen-hover:#134B30; --evergreen-pressed:#0E3A25;
+    --lime:#7ED957;      /* large UI only: fills, icons, bars; never text */
+    --lime-soft:#EEF8E8; --sky:#0F7DB6; --sky-soft:#E7F2F9;
+    --clay:#5A544B; --mist:#EDEBE7; --canvas:#FAF9F4; --surface:#FFFFFF; --ink:#1F2A24;
+    --error:#B3261E; --error-soft:#FCEBEA; --warning:#8A5A00; --warning-soft:#FFF4DE; --success-soft:#EAF5EC;
+    --r-sm:4px; --r-md:8px; --r-lg:12px; --r-xl:20px; --pill:999px;
+    --e2:0 1px 2px rgba(24,92,59,.06), 0 2px 8px rgba(31,42,36,.05);
+    --e4:0 2px 4px rgba(24,92,59,.08), 0 6px 16px rgba(31,42,36,.08);
+    --font:'Atkinson Hyperlegible', 'Public Sans', system-ui, sans-serif;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--text); }
-  header { padding:12px 16px; background:var(--crop); color:#fff; display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
-  header h1 { margin:0; font-size:22px; } header p { margin:2px 0 0; opacity:.85; font-size:13px; }
-  .lang { display:flex; border:1px solid #fff8; border-radius:6px; overflow:hidden; flex:none; }
-  .lang button { background:transparent; padding:4px 10px; border-radius:0; font-size:13px; }
-  .lang button[aria-pressed=true] { background:#fff; color:var(--crop); font-weight:600; }
-  main { max-width:760px; margin:0 auto; padding:16px; }
-  .progress { list-style:none; display:flex; gap:4px; padding:0; margin:0 0 16px; }
-  .progress li { flex:1; text-align:center; font-size:12px; color:var(--muted); }
-  .progress li::before { content:''; display:block; height:6px; border-radius:3px; background:var(--border); margin-bottom:4px; }
-  .progress li.done::before, .progress li.current::before { background:var(--crop); }
-  .progress li.current { color:var(--text); font-weight:600; }
-  .step h2 { margin:0 0 4px; font-size:22px; }
-  .why { background:var(--crop-soft); border-left:4px solid var(--crop); padding:8px 12px; border-radius:6px; margin:8px 0 16px; font-size:14px; }
-  .why b { display:block; }
-  .guide { margin:0 0 12px; padding-left:22px; } .guide li { margin:4px 0; }
+  body { margin:0; font:16px/24px var(--font); background:var(--canvas); color:var(--ink); }
+  :focus-visible { outline:3px solid var(--sky); outline-offset:2px; }
+
+  /* app bar */
+  header { position:sticky; top:0; z-index:1000; background:var(--surface); border-bottom:1px solid var(--mist); box-shadow:var(--e2); }
+  .bar-in { max-width:800px; margin:0 auto; padding:8px 16px; display:flex; gap:16px; align-items:center; justify-content:space-between; }
+  .brand img { display:block; height:44px; width:auto; }
+  .lang { display:flex; background:var(--mist); border-radius:var(--pill); padding:4px; flex:none; }
+  .lang button { background:transparent; color:var(--clay); padding:4px 12px; min-height:32px; border-radius:var(--pill); font-size:14px; line-height:20px; font-weight:700; border:0; }
+  .lang button:hover { background:transparent; color:var(--evergreen); }
+  .lang button[aria-pressed=true] { background:var(--surface); color:var(--evergreen); box-shadow:var(--e2); }
+
+  main { max-width:800px; margin:0 auto; padding:24px 16px 40px; }
+  .subtitle { margin:0 0 24px; color:var(--clay); font-size:14px; line-height:20px; }
+
+  /* progress */
+  .progress { list-style:none; display:flex; gap:8px; padding:0; margin:0 0 24px; }
+  .progress li { flex:1; min-width:0; text-align:center; font-size:12px; line-height:16px; color:var(--clay); overflow:hidden; text-overflow:ellipsis; }
+  .progress li::before { content:''; display:block; height:8px; border-radius:var(--pill); background:var(--mist); margin-bottom:8px; }
+  .progress li.done::before { background:var(--lime); }
+  .progress li.current::before { background:var(--evergreen); }
+  .progress li.current { color:var(--evergreen); font-weight:700; }
+
+  /* type */
+  .step h2 { margin:0 0 8px; font-size:24px; line-height:32px; color:var(--evergreen); }
+  @media (min-width:640px) { .step h2 { font-size:32px; line-height:40px; } }
+
+  /* messages: info / success / warning / error */
+  .msg, .why { display:flex; gap:12px; align-items:flex-start; border-radius:var(--r-lg); padding:12px 16px; margin:8px 0 16px; font-size:16px; line-height:24px; }
+  .msg::before, .why::before { flex:none; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; color:#fff; }
+  .why, .msg.info { background:var(--sky-soft); } .why::before, .msg.info::before { content:'i'; background:var(--sky); }
+  .msg.success { background:var(--success-soft); } .msg.success::before { content:'✓'; background:var(--evergreen); }
+  .msg.warning { background:var(--warning-soft); color:#3D2A00; } .msg.warning::before { content:'!'; background:var(--warning); }
+  .msg.error { background:var(--error-soft); color:#5C1410; } .msg.error::before { content:'!'; background:var(--error); }
+  .why { display:block; position:relative; padding-left:52px; } .why::before { position:absolute; left:16px; top:12px; }
+  .why b { display:block; font-size:14px; line-height:20px; color:var(--sky); }
+  .alert { color:var(--error); }
+
+  .guide { margin:0 0 16px; padding-left:24px; } .guide li { margin:8px 0; }
+  .guide li::marker { color:var(--evergreen); font-weight:700; }
+
+  /* map (kept as it was; only the frame follows the system) */
   .map-wrap { position:relative; }
-  #map { height:360px; border:1px solid var(--border); border-radius:8px; transition:box-shadow .3s; }
-  #map.flash { box-shadow:0 0 0 4px var(--warn); }
-  .hint { position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:500; background:#fff; border:2px solid var(--crop);
-          border-radius:999px; padding:6px 14px; font-weight:600; pointer-events:none; white-space:nowrap; box-shadow:0 2px 6px #0003; }
+  #map { height:360px; border:1px solid var(--mist); border-radius:var(--r-lg); transition:box-shadow .3s; }
+  #map.flash { box-shadow:0 0 0 4px var(--lime); }
+  .hint { position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:500; background:var(--surface); border:2px solid var(--evergreen); color:var(--evergreen);
+          border-radius:var(--pill); padding:4px 16px; font-weight:700; pointer-events:none; white-space:nowrap; box-shadow:var(--e4); }
   .hint[hidden] { display:none; }
-  button { font:inherit; padding:10px 18px; background:var(--crop); color:#fff; border:0; border-radius:8px; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:wait; }
-  button.secondary { background:#fff; color:var(--crop); border:1px solid var(--crop); }
-  button.small { padding:4px 10px; font-size:14px; }
-  .plot-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:6px 0; }
-  .field { margin:14px 0; } .field > label, .field > .label { display:block; font-weight:600; margin-bottom:4px; }
-  .field small { display:block; color:var(--muted); }
-  select, input[type=date], input[type=number] { font:inherit; padding:6px; max-width:100%; border:1px solid var(--border); border-radius:6px; background:#fff; }
+
+  /* buttons: primary, secondary, tertiary, destructive */
+  button { font:inherit; font-weight:700; padding:12px 24px; min-height:48px; background:var(--evergreen); color:#fff; border:2px solid var(--evergreen); border-radius:var(--r-lg); cursor:pointer; }
+  button:hover { background:var(--evergreen-hover); border-color:var(--evergreen-hover); }
+  button:active { background:var(--evergreen-pressed); border-color:var(--evergreen-pressed); }
+  button:disabled { background:var(--mist); border-color:var(--mist); color:#9A948A; cursor:wait; }
+  button.secondary { background:var(--surface); color:var(--evergreen); }
+  button.secondary:hover { background:var(--lime); border-color:var(--evergreen); }
+  button.secondary:active { background:#6CC548; }
+  button.tertiary { background:transparent; border-color:transparent; color:var(--evergreen); padding-left:8px; padding-right:8px; }
+  button.tertiary:hover { background:var(--lime-soft); }
+  button.destructive { background:var(--surface); color:var(--error); border-color:var(--error); }
+  button.destructive:hover { background:var(--error-soft); }
+  button.small { padding:4px 12px; min-height:36px; font-size:14px; line-height:20px; border-radius:var(--r-md); }
+  #locate { margin-top:16px; }
+
+  /* plots as chips */
+  #plots { display:grid; gap:8px; margin-top:16px; }
+  .plot-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--surface); border:1px solid var(--mist); border-radius:var(--r-lg); padding:8px 12px; }
+  .plot-row .chip { background:var(--lime-soft); color:var(--evergreen); border-radius:var(--pill); padding:2px 12px; font-weight:700; font-size:14px; }
+  .plot-row button { margin-left:auto; }
+
+  /* inputs */
+  .field { margin:24px 0; } .field > label, .field > .label { display:block; font-weight:700; margin-bottom:8px; }
+  .field small { display:block; color:var(--clay); margin-top:4px; }
+  select, input[type=date], input[type=number] { font:inherit; min-height:44px; padding:8px 12px; max-width:100%; border:1px solid #CFCAC1; border-radius:var(--r-md); background:var(--surface); color:var(--ink); }
+  select:hover, input:hover { border-color:var(--clay); }
+  select:focus, input:focus { outline:none; border-color:var(--evergreen); box-shadow:0 0 0 3px rgba(24,92,59,.18); }
+  input[type=radio], input[type=checkbox] { accent-color:var(--evergreen); width:20px; height:20px; flex:none; }
+  details summary { cursor:pointer; color:var(--evergreen); margin-top:8px; }
+  details summary small { color:var(--evergreen); font-weight:700; }
+  details select { margin-top:8px; }
+
+  /* option cards */
   .options { display:grid; gap:8px; }
-  .option { display:flex; gap:10px; align-items:flex-start; background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px; cursor:pointer; }
-  .option:has(input:checked) { border-color:var(--crop); background:var(--crop-soft); }
-  .option input { margin-top:4px; } .option span small { display:block; color:var(--muted); }
-  .nav { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center; margin:20px 0 8px; }
+  .option { display:flex; gap:12px; align-items:flex-start; background:var(--surface); border:2px solid var(--mist); border-radius:var(--r-lg); padding:12px 16px; cursor:pointer; }
+  .option:hover { border-color:#CFCAC1; }
+  .option:has(input:checked) { border-color:var(--evergreen); background:var(--lime-soft); }
+  .option input { margin-top:2px; } .option span small { display:block; color:var(--clay); font-size:14px; line-height:20px; }
+
+  /* navigation */
+  .nav { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center; margin:24px 0 8px; }
   .nav .right { display:flex; gap:8px; margin-left:auto; }
-  #step_msg { margin:8px 0; min-height:1.5em; }
-  .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px; }
-  .card h3 { margin:0 0 8px; font-size:17px; }
-  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
-  .tab { background:#fff; color:var(--text); border:1px solid var(--border); padding:6px 12px; border-radius:999px; font-size:14px; }
-  .tab[aria-pressed=true] { background:var(--crop); color:#fff; border-color:var(--crop); }
-  #view_info img { max-width:100%; height:auto; display:block; margin:6px 0; }
-  .rot { display:grid; grid-template-columns:150px 1fr 90px; align-items:center; gap:8px; margin:4px 0; }
-  @media (max-width:480px) { .rot { grid-template-columns:110px 1fr 70px; } .hint { font-size:13px; } }
-  .bar { position:relative; height:14px; background:#eee; border-radius:7px; }
-  .range { position:absolute; height:100%; background:#bcd8c0; border-radius:7px; }
-  .dot { position:absolute; top:-3px; width:4px; height:20px; background:var(--crop); }
-  .ev { display:inline-block; width:20px; text-align:center; border-radius:4px; color:#fff; font-weight:bold; font-size:12px; }
-  .evA { background:#2f6b3a; } .evB { background:#b58a1b; } .evC { background:#888; }
-  .alert { color:var(--alert); } small { color:var(--muted); }
-  .table-wrap { overflow-x:auto; }
-  table { border-collapse:collapse; width:100%; font-size:14px; } td, th { padding:3px 6px; border-bottom:1px solid #eee; text-align:left; }
+  #step_msg:empty { display:none; }
+  #step_msg { margin:16px 0 0; }
+
+  /* cards */
+  .card { background:var(--surface); border:1px solid var(--mist); border-radius:var(--r-lg); padding:16px; margin-bottom:16px; box-shadow:var(--e2); }
+  .card h3 { margin:0 0 8px; font-size:20px; line-height:28px; color:var(--evergreen); }
+  .card p { margin:8px 0; }
+
+  /* key metrics */
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin:16px 0; }
+  .metric { border:1px solid var(--mist); border-radius:var(--r-lg); padding:12px; background:var(--canvas); }
+  .metric span { display:block; font-size:12px; line-height:16px; color:var(--clay); }
+  .metric b { display:block; font-size:24px; line-height:32px; color:var(--ink); }
+  .metric small { font-size:12px; line-height:16px; }
+
+  /* tabs (underline) */
+  .tabs { display:flex; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--mist); margin:8px 0 16px; }
+  .tab { background:transparent; color:var(--clay); border:0; border-bottom:3px solid transparent; border-radius:0; padding:8px 4px; min-height:44px; font-size:16px; }
+  .tab:hover { background:transparent; color:var(--evergreen); border-color:transparent; border-bottom-color:var(--mist); }
+  .tab[aria-pressed=true] { color:var(--evergreen); border-bottom-color:var(--evergreen); }
+  #view_info img { max-width:100%; height:auto; display:block; margin:8px 0; }
+  #map_slot_result { margin-bottom:8px; }
+
+  /* rotation bars */
+  .rot { display:grid; grid-template-columns:160px 1fr 96px; align-items:center; gap:12px; margin:8px 0; }
+  @media (max-width:480px) { .rot { grid-template-columns:112px 1fr 72px; gap:8px; } .hint { font-size:13px; } .brand img { height:32px; } }
+  .bar { position:relative; height:16px; background:var(--mist); border-radius:var(--pill); }
+  .range { position:absolute; height:100%; background:var(--lime); border-radius:var(--pill); }
+  .dot { position:absolute; top:-4px; width:6px; height:24px; margin-left:-3px; border-radius:3px; background:var(--evergreen); }
+  .ev { display:inline-block; min-width:22px; text-align:center; border-radius:var(--r-sm); color:#fff; font-weight:700; font-size:12px; line-height:18px; }
+  .evA { background:var(--evergreen); } .evB { background:var(--sky); } .evC { background:var(--clay); }
+  small { color:var(--clay); font-size:14px; line-height:20px; }
+
+  /* compact table */
+  .table-wrap { overflow-x:auto; margin:16px 0 8px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; line-height:20px; }
+  th { text-align:left; font-weight:700; color:var(--clay); font-size:12px; line-height:16px; padding:8px; border-bottom:1px solid var(--mist); }
+  td { padding:8px; border-bottom:1px solid var(--mist); }
+  tr:last-child td { border-bottom:0; }
   #explanation { white-space:pre-wrap; }
+
+  /* forecast */
+  .fc { display:grid; grid-template-columns:repeat(7, minmax(72px, 1fr)); gap:8px; overflow-x:auto; margin-bottom:8px; }
+  .fc div { background:var(--canvas); border:1px solid var(--mist); border-radius:var(--r-md); padding:8px; text-align:center; font-size:14px; line-height:20px; }
+  .fc b, .fc span { display:block; } .fc b { color:var(--evergreen); }
+  .note { display:flex; gap:8px; background:var(--mist); border-radius:var(--r-md); padding:8px 12px; }
+  ol li::marker { color:var(--evergreen); font-weight:700; }
 </style>
 </head>
 <body>
-<header>
-  <div><h1>AgroRadar</h1><p data-t="subtitle"></p></div>
+<header><div class="bar-in">
+  <h1 class="brand" style="margin:0"><img src="/assets/logo.png" alt="AgroRadar" width="120" height="40"></h1>
   <div class="lang" role="group" aria-label="Idioma / Language">
     <button type="button" data-lang="es">ES</button><button type="button" data-lang="en">EN</button>
   </div>
-</header>
+</div></header>
 <main>
+  <p class="subtitle" data-t="subtitle"></p>
   <ol class="progress" id="progress"></ol>
 
   <!-- Step 1: where -->
@@ -85,7 +184,7 @@
     <div id="map_slot_plot">
       <div class="map-wrap" id="map_wrap"><div id="map"></div><div class="hint" id="map_hint" data-t="map_hint"></div></div>
     </div>
-    <p><button type="button" id="locate" class="secondary small" data-t="use_location"></button> <span id="map_status"></span></p>
+    <p><button type="button" id="locate" class="secondary" data-t="use_location"></button> <span id="map_status"></span></p>
     <div id="plots"></div>
   </section>
 
@@ -145,8 +244,8 @@
 
   <div id="step_msg" role="status"></div>
   <div class="nav">
-    <button type="button" id="back" class="secondary" data-t="back"></button>
-    <button type="button" id="edit" class="secondary" data-t="edit"></button>
+    <button type="button" id="back" class="tertiary" data-t="back"></button>
+    <button type="button" id="edit" class="tertiary" data-t="edit"></button>
     <div class="right">
       <button type="button" id="restart" class="secondary" data-t="restart"></button>
       <button type="button" id="next"></button>
@@ -203,7 +302,7 @@ const T = {
     up: 'sube', down: 'baja', no_clear_trend: 'sin tendencia clara', stable: 'se mantiene',
     relative_trend_extrapolation_not_physical_forecast: 'extrapolación de tendencia, no pronóstico físico',
     user: 'usuario', assumed: 'supuesto', nasa_appeears: 'NASA AppEEARS',
-    satellite_data_pending: 'datos de satélite pendientes', slope_pct: 'pendiente', soilgrids_no_response: 'SoilGrids no respondió', soil_analysis: 'análisis de suelo',
+    satellite_data_pending: 'datos de satélite pendientes', slope_pct: 'pendiente', soil_data_pending: 'datos de suelo pendientes', soil_analysis: 'análisis de suelo',
     // why each satellite view was chosen (reason codes from the API)
     top_water: 'En su parcela, el agua (canícula o falta de lluvia) es de lo que más pesa.',
     top_heat: 'El calor en floración es de lo que más pesa en su parcela.',
@@ -212,8 +311,13 @@ const T = {
     priority_water: 'Usted marcó que le preocupa el agua.',
     priority_erosion: 'Usted marcó que le preocupa la erosión.',
     priority_nitrogen: 'Usted marcó el nitrógeno: el verdor da una pista de la fuerza de la planta.',
-    bare_soil: 'Dijo que el suelo está desnudo: en la foto se ve el terreno sin cobertura.',
+    reason_bare_soil: 'Dijo que el suelo está desnudo: en la foto se ve el terreno sin cobertura.',
     default: 'Es una vista general útil para cualquier parcela.',
+    climate_only: 'Por ahora este resultado se basa sobre todo en el clima de la NASA. Para su zona todavía usamos valores supuestos de:',
+    slope_word: 'pendiente', greenness_word: 'verdor', soil_word: 'suelo',
+    forecast_title: 'Próximos 7 días (pronóstico)',
+    forecast_note: 'Pronóstico de Open-Meteo para la parcela {p}. Ayuda a decidir cuándo sembrar; no cambia el índice.',
+    rain_label: 'Lluvia al año', onset_label: 'Empiezan las lluvias', median: 'fecha típica',
     date_fmt: (m, d) => `${d}/${m}`,
   },
   en: {
@@ -264,7 +368,7 @@ const T = {
     up: 'rising', down: 'falling', no_clear_trend: 'no clear trend', stable: 'stable',
     relative_trend_extrapolation_not_physical_forecast: 'trend extrapolation, not a physical forecast',
     user: 'user', assumed: 'assumed', nasa_appeears: 'NASA AppEEARS',
-    satellite_data_pending: 'satellite data pending', slope_pct: 'slope', soilgrids_no_response: 'SoilGrids did not respond', soil_analysis: 'soil analysis',
+    satellite_data_pending: 'satellite data pending', slope_pct: 'slope', soil_data_pending: 'soil data pending', soil_analysis: 'soil analysis',
     top_water: 'On your plot, water (canícula or lack of rain) is among what weighs most.',
     top_heat: 'Heat at flowering is among what weighs most on your plot.',
     top_erosion: 'Erosion is among what weighs most on your plot.',
@@ -272,8 +376,13 @@ const T = {
     priority_water: 'You said water worries you.',
     priority_erosion: 'You said erosion worries you.',
     priority_nitrogen: 'You ticked nitrogen: greenness gives a hint of how strong the plants are.',
-    bare_soil: 'You said the soil is bare: the photo shows land without cover.',
+    reason_bare_soil: 'You said the soil is bare: the photo shows land without cover.',
     default: 'It is a useful general view for any plot.',
+    climate_only: 'For now this result is based mostly on NASA climate data. For your area we still use assumed values for:',
+    slope_word: 'slope', greenness_word: 'greenness', soil_word: 'soil',
+    forecast_title: 'Next 7 days (forecast)',
+    forecast_note: 'Open-Meteo forecast for plot {p}. It helps decide when to plant; it does not change the index.',
+    rain_label: 'Rain per year', onset_label: 'Rains start', median: 'typical date',
     date_fmt: (m, d) => `${m}/${d}`,
   },
 };
@@ -354,8 +463,8 @@ $('locate').onclick = () => {
 function drawPlots() {
   $('map_hint').hidden = plots.length > 0 || step !== 1;
   $('plots').innerHTML = plots.map((p, i) =>
-    `<div class="plot-row"><b>${p.id}</b> — ${n('area')} <input type="number" step="0.1" min="0" value="${p.area}" style="width:80px"
-      onchange="plots[${i}].area=+this.value"> mz <button type="button" class="secondary small" onclick="removePlot(${i})">${n('remove')}</button></div>`).join('');
+    `<div class="plot-row"><span class="chip">${p.id}</span> <label>${n('area')} <input type="number" step="0.1" min="0" value="${p.area}" style="width:88px"
+      onchange="plots[${i}].area=+this.value"> mz</label> <button type="button" class="destructive small" onclick="removePlot(${i})">${n('remove')}</button></div>`).join('');
 }
 
 // --- planting date and season ---
@@ -387,8 +496,8 @@ function flashMap() {
 }
 $('next').onclick = () => {
   $('step_msg').textContent = '';
-  if (step === 1 && !plots.length) { $('step_msg').innerHTML = `<span class="alert">${n('need_plot')}</span>`; return flashMap(); }
-  if (step === 2 && !$('planting_date').value) { $('step_msg').innerHTML = `<span class="alert">${n('need_date')}</span>`; return; }
+  if (step === 1 && !plots.length) { $('step_msg').innerHTML = `<div class="msg error">${n('need_plot')}</div>`; return flashMap(); }
+  if (step === 2 && !$('planting_date').value) { $('step_msg').innerHTML = `<div class="msg error">${n('need_date')}</div>`; return; }
   if (step === LAST_QUESTION) return compute();
   show(step + 1);
   window.scrollTo({top: 0, behavior: 'smooth'});
@@ -413,7 +522,7 @@ async function compute() {
     if ($('slope_pct').value) x.slope_pct = +$('slope_pct').value;
     return x; })};
   $('next').disabled = $('back').disabled = true;
-  $('step_msg').textContent = tr('computing');
+  $('step_msg').innerHTML = `<div class="msg info">${n('computing')}</div>`;
   try {
     const r = await fetch('/api/farm', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(farm)});
     const d = await r.json();
@@ -421,7 +530,7 @@ async function compute() {
     last = d; viewIdx = 0; $('step_msg').textContent = '';
     show(5); render(d);
     window.scrollTo({top: 0, behavior: 'smooth'});
-  } catch (e) { $('step_msg').innerHTML = `<span class="alert">${esc(e.message)}</span>`; }
+  } catch (e) { $('step_msg').innerHTML = `<div class="msg error">${esc(e.message)}</div>`; }
   $('next').disabled = $('back').disabled = false;
 }
 
@@ -435,7 +544,7 @@ function showView(i) {
   document.querySelectorAll('#view_tabs .tab').forEach((b, j) => b.setAttribute('aria-pressed', j === i));
   setSatellite(v);
   $('view_info').innerHTML = `<p>${esc(v.shows[lang])}</p>
-    <p><b>${n('sat_why')}:</b> ${sv.reasons.map(n).join(' ')}</p>
+    <p><b>${n('sat_why')}:</b> ${sv.reasons.map(r => n(T.es['reason_' + r] ? 'reason_' + r : r)).join(' ')}</p>
     <p><b>${n('sat_read')}:</b> ${esc(v.read[lang])}</p>
     ${v.legend ? `<img src="https://gibs.earthdata.nasa.gov/legends/${v.legend}" alt="${esc(v.name[lang])}">` : ''}
     <small>${n('source')}: ${esc(v.source)}, ${n('latest')}.</small>`;
@@ -444,7 +553,7 @@ function showView(i) {
 function render(d) {
   placeMap('map_slot_plot');  // park the map before the results are redrawn
   let h = d.lang !== lang ? `<p><small>${n('relang')}</small></p>` : '';
-  h += d.warnings.map(a => `<p class="alert">${esc(a)}</p>`).join('');
+  h += d.warnings.map(a => `<div class="msg warning">${esc(a)}</div>`).join('');
   if (d.explanation) h += `<div class="card"><h3>${n('explanation')}</h3><div id="explanation"></div>${d.agent_warnings.map(a => `<p class="alert"><small>${esc(a)}</small></p>`).join('')}</div>`;
   else h += d.agent_warnings.map(a => `<p><small>${esc(a)}</small></p>`).join('');
   if (d.ranking.length > 1) h += `<div class="card"><h3>${n('ranking')}</h3><ol>${d.ranking.map(r => `<li>${esc(r.plot_id)} — ${n('weigh_most')}: ${r.why.map(n).join(' ' + n('and') + ' ')}</li>`).join('')}</ol></div>`;
@@ -462,9 +571,24 @@ function render(d) {
     h += `<p>${p.contributions.map(c => `${ev(c.evidence)} ${n(c.variable)}${c.index_contribution != null ? ' ' + c.index_contribution : ''}`).join(' · ')}</p>`;
     const t = p.erosion_trend, tp = p.terrain_profile;
     if (t) h += `<p>${esc(tr('erosion_in').replace('{n}', t.years))}: <b>${n(t.direction)}</b> <small>(${t.band_80[0]}–${t.band_80[1]} ${n('times_now')}; ${n(t.note)})</small></p>`;
-    h += `<p><small>${n('climate')} ${esc(tp.climate.years)}: ${tp.climate.mean_annual_rain_mm} ${n('mm_year')}, ${n('rains_start')}${esc(fmtDate(tp.climate.median_rain_onset))}. ${n('slope')} ${tp.slope_pct}% (${n(tp.slope_source)}).</small></p>`;
+    h += `<div class="metrics">
+      <div class="metric"><span>${n('rain_label')}</span><b>${Math.round(tp.climate.mean_annual_rain_mm)}</b><small>${n('mm_year')} · ${esc(tp.climate.years)}</small></div>
+      <div class="metric"><span>${n('onset_label')}</span><b>${esc(fmtDate(tp.climate.median_rain_onset))}</b><small>${n('median')}</small></div>
+      <div class="metric"><span>${n('slope')}</span><b>${tp.slope_pct}%</b><small>${n(tp.slope_source)}</small></div></div>`;
+    const assumed = [];
+    if (tp.slope_source === 'assumed') assumed.push('slope_word');
+    if (tp.greenness.mean_ndvi == null) assumed.push('greenness_word');
+    if (!tp.soil) assumed.push('soil_word');
+    if (assumed.length) h += `<p class="note"><small>${n('climate_only')} ${assumed.map(n).join(', ')}.</small></p>`;
     if (p.missing_data.length) h += `<p><small>${n('missing')}: ${p.missing_data.map(n).join(', ')}</small></p>`;
     h += `<details><summary><small>${n('assumptions')}</small></summary><small>${p.assumptions_used.map(esc).join(', ')}</small></details></div>`;
+  }
+  const fc = d.forecast_7d;
+  if (fc && fc.daily.length) {
+    const day = x => new Date(x + 'T12:00').toLocaleDateString(lang === 'es' ? 'es-SV' : 'en-US', {weekday: 'short', day: 'numeric'});
+    h += `<div class="card"><h3>${n('forecast_title')}</h3><div class="fc">${fc.daily.map(x =>
+      `<div><b>${esc(day(x.date))}</b><span>🌧 ${x.rain_mm ?? '–'} mm</span><span>🌡 ${x.t_max_c == null ? '–' : Math.round(x.t_max_c)}°C</span></div>`).join('')}</div>
+      <small>${esc(tr('forecast_note').replace('{p}', d.plots[0].plot_id))}</small></div>`;
   }
   h += `<div class="card"><h3>${n('sat_title')}</h3><p><small>${n('sat_intro')}</small></p>
     <div class="tabs" id="view_tabs">${d.satellite_views.map((sv, i) => `<button type="button" class="tab" onclick="showView(${i})">${esc(VIEWS[sv.view].name[lang])}</button>`).join('')}</div>
