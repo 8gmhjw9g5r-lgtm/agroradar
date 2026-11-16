@@ -78,6 +78,16 @@ def events(feats, c):
     }
 
 
+def _decade(feats):
+    """Rain summary over the last 10 years with a full annual total (the current year is usually incomplete)."""
+    recent = [f for f in feats if f["annual_rain_mm"]][-10:]
+    onsets = [f["rain_onset"].timetuple().tm_yday for f in recent if f["rain_onset"]]
+    return {"years": f"{recent[0]['year']}-{recent[-1]['year']}",
+            "mean_annual_rain_mm": round(mean(f["annual_rain_mm"] for f in recent)),
+            "median_rain_onset": (date(2001, 1, 1) + timedelta(round(median(onsets)) - 1)).strftime("%m-%d") if onsets else None,
+            "rain_onset_range": [(date(2001, 1, 1) + timedelta(x - 1)).strftime("%m-%d") for x in (min(onsets), max(onsets))] if onsets else None}
+
+
 def analyze_plot(p, c, today, oni, phase, lang="es"):
     assumptions, missing = [], []
     lat, lon = centroid(p["geometry"])
@@ -208,7 +218,8 @@ def analyze_plot(p, c, today, oni, phase, lang="es"):
                         "mean_annual_rain_mm": round(mean(f["annual_rain_mm"] for f in feats if f["annual_rain_mm"])),
                         "median_rain_onset": (date(2001, 1, 1) + timedelta(round(median(
                             f["rain_onset"].timetuple().tm_yday for f in feats if f["rain_onset"])) - 1)).strftime("%m-%d"),
-                        "flowering_vpd_kpa": round(mean(f["flowering_vpd_kpa"] for f in feats), 2)},
+                        "flowering_vpd_kpa": round(mean(f["flowering_vpd_kpa"] for f in feats), 2),
+                        "last_decade": _decade(feats)},  # what the page shows; the model uses all years
             "slope_pct": slope, "slope_source": slope_src, "mean_erosion_index": round(mean(eros), 1),
             "soil_moisture_anomaly_sd": sat.get("soil_moisture_anomaly_sd") if sat else None,
             "rootzone_moisture_anomaly_sd": sat.get("rootzone_moisture_anomaly_sd") if sat else None,
@@ -299,4 +310,4 @@ def api_farm(farm: dict):
 
 @app.get("/")
 def home():
-    return FileResponse(ROOT / "frontend" / "index.html")
+    return FileResponse(ROOT / "frontend" / "index.html", headers={"Cache-Control": "no-cache"})

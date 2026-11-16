@@ -396,6 +396,7 @@ class AppEEARSAndSoil(unittest.TestCase):
                 w.writerow(["ID", "Category", "Latitude", "Longitude", "Date", "NASADEM_NC_001_NASADEM_HGT"])
                 for nb, dz in {"c": 0, "n": 1, "s": -1, "e": 0, "w": 0}.items():
                     w.writerow([f"z-0-{nb}", "z", lat, -88.18, "2000-02-11", 100 + dz * 0.10 * step_m])
+                    w.writerow([f"z-1-{nb}", "z", lat, -88.18, "2000-02-11", 0])  # sea point: dropped
             with open(raw / "agroradar_smap-results.csv", "w", newline="") as f:
                 w = csv.writer(f)
                 w.writerow(["ID", "Category", "Latitude", "Longitude", "Date",

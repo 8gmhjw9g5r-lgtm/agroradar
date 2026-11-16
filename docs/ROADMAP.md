@@ -16,7 +16,7 @@ Status as of 2026-11-15. Technical detail and assumptions in `DECISIONS.md`.
 | Code, data and docs in English; page and Gemini in Spanish or English | ✅ Done |
 | NASA GIBS satellite layers on the map (viewing only) | ✅ Done |
 | MAG calibration v2 | ⚠️ Primera AUC 0.90 (published); postrera AUC 0.33 (not published, risks only) |
-| AppEEARS (MODIS NDVI, NASADEM, SMAP) | ⚠️ NDVI downloaded 2026-11-15 (2000–2026, 3 zones); slope and SMAP still processing at NASA |
+| AppEEARS (MODIS NDVI, NASADEM, SMAP) | ⚠️ NDVI and slope downloaded 2026-11-15 (3 zones); SMAP still processing at NASA |
 | SoilGrids | ❌ Not responding; client untested against a real reply |
 | Sources for table E, the nitrogen table and the thresholds | ❌ All ASSUMPTION |
 
@@ -42,7 +42,10 @@ the same result. This phase adds the per-zone data.
 - [ ] Later: let the script also process the queue of plots outside the zones (`data/appeears/queue.jsonl`).
 - [x] **You:** create a free NASA Earthdata account and put the login in `.env`; run the script.
 - [x] Greenness (NDVI) downloaded and used by the index. In La Unión 3 of 9 sample points fall on the Gulf of Fonseca and are dropped as water.
-- [ ] Slope (NASADEM) and moisture (SMAP): run `python -m backend.appeears download` again when `status` shows `done`.
+- [x] Slope (NASADEM) downloaded and used (erosion now evidence B). Zone slope is the median of 9 points; points whose centre is at
+  sea level are dropped. Median slope: San Miguel 3.2%, La Unión 27.7%, Chalatenango 12.2%.
+- [ ] La Unión's zone centre (13.34, -87.84) lies in the Gulf of Fonseca: move it inland and re-request that zone.
+- [ ] Moisture (SMAP): run `python -m backend.appeears download` again when `status` shows `done`.
 - [x] Page follows the AgroRadar design system (`design/`): palette B, Atkinson Hyperlegible, 8-pt spacing, logo.
 - [ ] **Soil saved in advance**: `python -m backend.soil` stores SoilGrids values per pilot zone in `data/soil/`; the app
   reads those files and never waits on SoilGrids live. Run it when SoilGrids is back up.

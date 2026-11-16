@@ -8,7 +8,7 @@ import csv
 import json
 import math
 from datetime import date, timedelta
-from statistics import mean, pstdev
+from statistics import mean, median, pstdev
 
 from backend import DATA
 from backend.models import trend
@@ -46,7 +46,7 @@ def read(zone, planting_md, cycle_days, c, d=DIR, today=None):
     out = {"source": "nasa_appeears", "valid_frac": round(frac, 2),
            "evidence": "B" if frac >= c["satellite"]["min_valid"] else "C", "ndvi_by_year": {}, "bare_soil_days": {}}
     slope = [v for _, v, ok in by_layer.get("slope", []) if ok]
-    out["slope_pct"] = round(mean(slope), 1) if slope else None
+    out["slope_pct"] = round(median(slope), 1) if slope else None  # median: one ravine point must not decide the zone
     out["slope_max_pct"] = round(max(slope), 1) if slope else None
     for a in sorted({f.year for f, _ in valid}):
         s = date(a, *planting_md)

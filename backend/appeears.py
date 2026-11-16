@@ -148,6 +148,8 @@ def convert_dem(path):
     for pid in [p[:-2] for p in z if p.endswith("-c")]:
         if not all(f"{pid}-{nb}" in z for nb in "nsew"):
             continue
+        if z[f"{pid}-c"][0] <= 0:
+            continue  # centre on the sea surface (NASADEM gives 0 m): not land
         lat = z[f"{pid}-c"][1]
         dy = 2 * DEM_STEP_DEG * M_PER_DEG
         dx = dy * math.cos(math.radians(lat))
