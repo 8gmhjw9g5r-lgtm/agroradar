@@ -123,7 +123,21 @@
   button.destructive { background:var(--surface); color:var(--error); border-color:var(--error); }
   button.destructive:hover { background:var(--error-soft); }
   button.small { padding:4px 12px; min-height:36px; font-size:14px; line-height:20px; }
-  #locate { margin-top:16px; }
+  .locate-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:0 0 16px; }
+  .geo-note { display:flex; gap:12px; align-items:flex-start; background:var(--sky-soft); border-radius:var(--r-xl); padding:14px 16px; margin:0 0 12px; }
+  .geo-note .gi { width:36px; height:36px; border-radius:50%; background:var(--surface); color:var(--sky); display:grid; place-items:center; flex:none; }
+  .geo-note p { margin:0; font-size:14px; line-height:20px; color:var(--ink); }
+  .geo-note b { display:block; font-size:15px; margin-bottom:2px; color:var(--sky); }
+  .coords-box { background:var(--surface); border:1px solid var(--mist); border-radius:var(--r-xl); padding:14px 16px; margin:0 0 16px; box-shadow:var(--e2); }
+  .coords-box label { display:block; font-weight:700; margin-bottom:8px; }
+  .coords-row { display:flex; gap:8px; }
+  .coords-row input { flex:1; min-width:0; font:inherit; min-height:48px; padding:8px 16px; border:1px solid #CFCAC1; border-radius:var(--r-lg); }
+  .coords-row input:focus { outline:none; border-color:var(--evergreen); box-shadow:0 0 0 3px rgba(24,92,59,.18); }
+  .coords-box small { display:block; margin-top:6px; }
+  #coords_msg:empty { display:none; } #coords_msg .msg { margin:8px 0 0; }
+  #map_status:empty { display:none; }
+  #map_status .msg { margin:0; }
+  @media (max-width:560px) { #locate { width:100%; } }
 
   #plots { display:grid; gap:8px; margin-top:16px; }
   .plot-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--surface); border:1px solid var(--mist); border-radius:var(--r-xl); padding:8px 8px 8px 12px; box-shadow:var(--e2); }
@@ -183,6 +197,8 @@
   /* navigation */
   .nav { position:sticky; bottom:0; z-index:900; display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;
          margin:24px -16px 0; padding:12px 16px 16px; background:linear-gradient(to bottom, rgba(250,249,244,0), var(--canvas) 30%); }
+  .nav { pointer-events:none; }  /* the see-through strip must not block taps on the map */
+  .nav > * { pointer-events:auto; }
   .nav .right { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
   .nav.static { position:static; }
   @media (max-width:560px) { .nav .right { flex:1; } #next { flex:1; min-height:56px; } .nav.static .right button { flex:1; } }
@@ -218,7 +234,7 @@
 
   /* rotation feature cards */
   .rot-cards { margin:16px 0 0; }
-  @media (min-width:640px) { .fgrid, .metrics.n3 { grid-template-columns:repeat(3, 1fr); } .metrics.n2 { grid-template-columns:repeat(2, 1fr); } }
+  @media (min-width:640px) { .fgrid, .metrics.n3 { grid-template-columns:repeat(3, 1fr); } .metrics.n2, .metrics.n4 { grid-template-columns:repeat(2, 1fr); } }
   .score { display:flex; align-items:baseline; gap:4px; margin:4px 0 8px; } .score b { font-size:34px; line-height:40px; color:var(--evergreen); } .score small { font-size:14px; }
   .bar { position:relative; height:10px; background:var(--mist); border-radius:var(--pill); }
   .range { position:absolute; height:100%; background:rgba(126,217,87,.6); border-radius:var(--pill); }
@@ -362,10 +378,18 @@
       <div class="fcard"><div class="band"></div><div class="orb">2</div><div class="body"><p data-t="s1_g2"></p></div></div>
       <div class="fcard"><div class="band"></div><div class="orb">3</div><div class="body"><p data-t="s1_g3"></p></div></div>
     </div>
+    <div class="geo-note"><span class="gi" data-icon="locate" data-size="20"></span><p><b data-t="geo_note_t"></b><span data-t="geo_note"></span></p></div>
+    <div class="locate-row"><button type="button" id="locate" class="secondary"></button><span id="map_status" role="status"></span></div>
+    <div class="coords-box">
+      <label for="coords" data-t="coords_label"></label>
+      <div class="coords-row"><input id="coords" type="text" inputmode="text" autocomplete="off" placeholder="13.4800, -88.1800">
+        <button type="button" id="coords_go" class="secondary"></button></div>
+      <small data-t="coords_help"></small>
+      <div id="coords_msg" role="status"></div>
+    </div>
     <div id="map_slot_plot">
       <div class="map-wrap" id="map_wrap"><div id="map"></div><div class="hint" id="map_hint" data-t="map_hint"></div></div>
     </div>
-    <p><button type="button" id="locate" class="secondary"></button> <span id="map_status"></span></p>
     <div id="plots"></div>
   </section>
 
@@ -479,14 +503,26 @@ const T = {
     steps: ['Parcela', 'Siembra', 'Terreno', 'Prioridades', 'Resultados'],
     step_of: 'Paso {n} de 4', kicker5: 'Resultados',
     why_label: '¿Por qué preguntamos esto?', back: 'Atrás', next: 'Siguiente', compute: 'Calcular', edit: 'Cambiar respuestas', restart: 'Empezar de nuevo', share: 'Compartir',
-    shared: 'Resultado copiado', share_text: 'AgroRadar · Parcela {p}: opción recomendada {r}, éxito estimado {i}/100 (rango {a}–{b}).',
+    shared: 'Resultado copiado: péguelo en un mensaje', sh_plot: '📍 Parcela {p} · {s}',
+    sh_best: '✅ Opción recomendada: {r}, {i}/100 (rango {a}–{b})', sh_equal: '✅ Las tres rotaciones dan {i}/100 (rango {a}–{b})',
+    sh_risk: '⚠️ Riesgo principal: {r} ({p}% de los años)', sh_rain: '🌧️ Lluvia: {mm} mm al año; suelen empezar alrededor del {d}',
+    sh_try: 'Pruebe con su parcela:',
     s1_title: '¿Dónde está su parcela?',
     s1_why: 'Con ese punto traemos 35 años de lluvia y temperatura de la NASA para su zona exacta.',
     s1_g1: 'Acerque el mapa con el botón + (o con dos dedos) hasta reconocer su terreno.',
-    s1_g2: 'Toque una vez encima de su parcela: aparece un marcador azul.',
-    s1_g3: '¿Tiene más parcelas? Tóquelas también (hasta 10). Si se equivoca, use "Quitar".',
-    map_hint: '👆 Toque aquí sobre su parcela', use_location: 'Estoy en mi parcela: usar mi ubicación',
-    locating: 'Buscando su ubicación…', no_location: 'No se pudo obtener su ubicación. Toque el mapa en su parcela.',
+    s1_g2: 'Toque una vez encima de su parcela: aparece un marcador azul. Si se equivoca, toque otra vez o arrastre el marcador.',
+    s1_g3: '¿Tiene más parcelas? Use "Agregar otra parcela" y toque el mapa (hasta 10).',
+    map_hint: '👆 Toque aquí sobre su parcela', map_hint_new: '👆 Toque la nueva parcela',
+    add_plot: 'Agregar otra parcela', adding_new: 'Toque el mapa donde está su nueva parcela.', move_hint: 'Para mover la parcela, toque otra vez el mapa.',
+    geo_note_t: 'Permita la ubicación para encontrar su parcela más rápido',
+    geo_note: 'Al tocar el botón, su teléfono le preguntará si AgroRadar puede usar su ubicación: toque "Permitir". Solo la usamos para marcar su parcela y calcular su resultado. Funciona mejor con el GPS encendido y en Chrome o Safari (no dentro de WhatsApp o Facebook).',
+    coords_label: '¿Tiene las coordenadas de su parcela?', coords_go: 'Buscar',
+    coords_help: 'Por ejemplo, copiadas de Google Maps: latitud, longitud.',
+    coords_bad: 'No entendimos esas coordenadas. Escríbalas así: 13.4800, -88.1800', use_location: 'Estoy en mi parcela: usar mi ubicación',
+    locating: 'Buscando su ubicación… puede tardar unos segundos. Si el teléfono pregunta, toque "Permitir".', no_location: 'No se pudo obtener su ubicación. Toque el mapa en su parcela.',
+    geo_denied: 'El teléfono no dio permiso de ubicación. Actívelo en Ajustes → Privacidad → Ubicación para su navegador y pruebe otra vez, o toque el mapa en su parcela.',
+    geo_timeout: 'La ubicación tardó demasiado. Active el GPS, salga al aire libre y pruebe otra vez, o toque el mapa en su parcela.',
+    geo_insecure: 'La ubicación solo funciona en https://agroradar.space. Toque el mapa en su parcela.',
     need_plot: 'Primero marque su parcela: toque el mapa o use su ubicación.', need_date: 'Escriba las fechas de siembra.',
     remove: 'Quitar', area: 'Tamaño', m2_hint: '1 manzana ≈ 7,000 m²',
     ask_more_t: '¿Necesita agregar otra parcela?', ask_more: 'Tiene {n} marcada(s): {ids}. Puede comparar hasta 10 parcelas a la vez.',
@@ -534,6 +570,7 @@ const T = {
     likely: 'Lo más probable: entre {a} y {b}', no_index: 'Sin número publicable para esta cosecha',
     lg_range: 'Rango probable', lg_value: 'Valor más probable',
     climate_title: 'Lluvia en su zona', climate_sub: 'Promedio de los últimos 10 años ({y}), datos NASA POWER.',
+    cycle_rain_label: 'Lluvia mientras crece su cultivo', cycle_rain_dry: 'En un año normal. En un año seco (1 de cada 4): {mm} mm o menos.',
     rain_label: 'Llueve al año', onset_label: 'Las lluvias suelen empezar alrededor del', onset_range: 'En estos años, entre el {a} y el {b}.',
     ndvi_label: 'Verdor de la vegetación (NDVI)', ndvi_help: 'De 0 a 1: más alto, más verde. Satélite NASA MODIS.',
     land_title: 'Su terreno y la erosión',
@@ -583,14 +620,26 @@ const T = {
     steps: ['Plot', 'Planting', 'Land', 'Priorities', 'Results'],
     step_of: 'Step {n} of 4', kicker5: 'Results',
     why_label: 'Why do we ask this?', back: 'Back', next: 'Next', compute: 'Calculate', edit: 'Change answers', restart: 'Start again', share: 'Share',
-    shared: 'Result copied', share_text: 'AgroRadar · Plot {p}: recommended {r}, estimated success {i}/100 (range {a}–{b}).',
+    shared: 'Result copied: paste it into a message', sh_plot: '📍 Plot {p} · {s}',
+    sh_best: '✅ Recommended option: {r}, {i}/100 (range {a}–{b})', sh_equal: '✅ All three rotations score {i}/100 (range {a}–{b})',
+    sh_risk: '⚠️ Main risk: {r} ({p}% of years)', sh_rain: '🌧️ Rain: {mm} mm a year; it typically starts around {d}',
+    sh_try: 'Try it with your plot:',
     s1_title: 'Where is your plot?',
     s1_why: 'With that point we fetch 35 years of NASA rain and temperature for your exact area.',
     s1_g1: 'Zoom in with the + button (or two fingers) until you recognise your land.',
-    s1_g2: 'Tap once on your plot: a blue marker appears.',
-    s1_g3: 'More plots? Tap them too (up to 10). If you make a mistake, use "Remove".',
-    map_hint: '👆 Tap here on your plot', use_location: "I'm at my plot: use my location",
-    locating: 'Finding your location…', no_location: 'Could not get your location. Tap your plot on the map.',
+    s1_g2: 'Tap once on your plot: a blue marker appears. If you make a mistake, tap again or drag the marker.',
+    s1_g3: 'More plots? Use "Add another plot" and tap the map (up to 10).',
+    map_hint: '👆 Tap here on your plot', map_hint_new: '👆 Tap the new plot',
+    add_plot: 'Add another plot', adding_new: 'Tap the map where your new plot is.', move_hint: 'To move the plot, tap the map again.',
+    geo_note_t: 'Allow location to find your plot faster',
+    geo_note: 'When you tap the button, your phone will ask whether AgroRadar can use your location: tap "Allow". We only use it to mark your plot and calculate your result. It works best with GPS on and in Chrome or Safari (not inside WhatsApp or Facebook).',
+    coords_label: 'Do you have your plot’s coordinates?', coords_go: 'Search',
+    coords_help: 'For example, copied from Google Maps: latitude, longitude.',
+    coords_bad: 'We could not read those coordinates. Write them like this: 13.4800, -88.1800', use_location: "I'm at my plot: use my location",
+    locating: 'Finding your location… it can take a few seconds. If your phone asks, tap "Allow".', no_location: 'Could not get your location. Tap your plot on the map.',
+    geo_denied: 'Your phone did not allow location. Turn it on in Settings → Privacy → Location for your browser and try again, or tap your plot on the map.',
+    geo_timeout: 'Finding your location took too long. Turn on GPS, step outside and try again, or tap your plot on the map.',
+    geo_insecure: 'Location only works on https://agroradar.space. Tap your plot on the map.',
     need_plot: 'First mark your plot: tap the map or use your location.', need_date: 'Enter the planting dates.',
     remove: 'Remove', area: 'Size', m2_hint: '1 manzana ≈ 7,000 m²',
     ask_more_t: 'Do you need to add another plot?', ask_more: 'You have {n} marked: {ids}. You can compare up to 10 plots at once.',
@@ -638,6 +687,7 @@ const T = {
     likely: 'Most likely between {a} and {b}', no_index: 'No publishable number for this harvest',
     lg_range: 'Likely range', lg_value: 'Most likely value',
     climate_title: 'Rain in your area', climate_sub: 'Average of the last 10 years ({y}), NASA POWER data.',
+    cycle_rain_label: 'Rain while your crop grows', cycle_rain_dry: 'In a normal year. In a dry year (1 in 4): {mm} mm or less.',
     rain_label: 'Rain per year', onset_label: 'Rain typically starts around', onset_range: 'In these years, between {a} and {b}.',
     ndvi_label: 'Vegetation greenness (NDVI)', ndvi_help: 'From 0 to 1: higher is greener. NASA MODIS satellite.',
     land_title: 'Your land and erosion',
@@ -714,14 +764,15 @@ const STEP_ICONS = ['pin', 'sprout', 'mountain', 'target', 'chart'];
 const VAR_ICON = {dry_spell: 'sun', heat: 'thermo', moisture: 'drop', erosion: 'erosion', greenness: 'leaf', nitrogen: 'sprout'};
 const RISK_ICON = {long_dry_spell: 'sun', late_onset: 'calendar', flowering_heat: 'thermo', rain_deficit: 'drop', rain_anomaly: 'rain'};
 const ROT_ICON = {maize_maize: 'maize', maize_bean: 'bean', maize_green_manure: 'clover'};
+const RELATIVE_RISKS = ['rain_deficit', 'rain_anomaly'];
 const M2_PER_MZ = 6987;
 
 // Satellite views chosen by the backend (backend/views.py) -> NASA GIBS layers, verified 2026-11-15.
 const VIEWS = {
   soil_moisture: {layer: 'SMAP_L4_Analyzed_Root_Zone_Soil_Moisture', level: 6, ext: 'png', legend: 'SMAP_Analyzed_Soil_Moisture_H.svg', source: 'SMAP L4 (NASA)', icon: 'drop',
     name: {es: 'Humedad del suelo', en: 'Soil moisture'},
-    shows: {es: 'Cuánta agua hay donde están las raíces. Cada cuadro mide unos 9 km, así que muestra su zona, no solo su parcela.',
-            en: 'How much water there is where the roots are. Each square is about 9 km wide, so it shows your area, not just your plot.'},
+    shows: {es: 'Cuánta agua hay donde están las raíces. Es una sola imagen de todo el país, centrada en su parcela; cada cuadro mide unos 9 km, así que lugares cercanos pueden verse iguales. Compare el color del cuadro donde está su marcador.',
+            en: 'How much water there is where the roots are. It is one image of the whole country, centred on your plot; each square is about 9 km wide, so nearby places can look the same. Compare the colour of the square under your marker.'},
     read: {es: 'En la barra de colores, a la izquierda está el suelo seco y a la derecha el húmedo.', en: 'On the colour bar, dry soil is on the left and wet soil on the right.'}},
   greenness: {layer: 'MODIS_Terra_L3_NDVI_16Day', level: 9, ext: 'png', legend: 'MODIS_L3_NDVI_H.svg', source: 'MODIS Terra NDVI (NASA)', icon: 'leaf',
     name: {es: 'Verdor', en: 'Greenness'},
@@ -772,33 +823,76 @@ function setSatellite(v) {
 
 // --- plots (size in square metres; the API takes manzanas) ---
 const plots = [];
-let nextId = 1;
+let addingNew = false;  // true only after "Add another plot": otherwise a new tap moves the current plot
+function setPos(p, latlng) { p.lat = +latlng.lat.toFixed(5); p.lon = +latlng.lng.toFixed(5); }
 function addPlot(latlng) {
   if (plots.length >= 10) return;
-  const id = 'p' + nextId++;
-  const marker = L.marker(latlng).addTo(map).bindTooltip(id, {permanent: true});
-  plots.push({id, lat: +latlng.lat.toFixed(5), lon: +latlng.lng.toFixed(5), m2: 7000, marker});
-  $('map_status').textContent = '';
-  $('step_msg').textContent = '';
+  let k = 1; while (plots.some(p => p.id === 'p' + k)) k++;  // lowest free number: p1 again after "Start again"
+  const id = 'p' + k;
+  const marker = L.marker(latlng, {draggable: true}).addTo(map).bindTooltip(id, {permanent: true});
+  const plot = {id, m2: 7000, marker};
+  setPos(plot, latlng);
+  marker.on('dragend', () => setPos(plot, marker.getLatLng()));
+  plots.push(plot);
   drawPlots();
 }
+// Map tap, "use my location" and typed coordinates all go through here.
+function placePlot(latlng) {
+  $('map_status').textContent = ''; $('step_msg').textContent = ''; $('coords_msg').textContent = '';
+  const cur = plots[plots.length - 1];
+  if (cur && !addingNew) { setPos(cur, latlng); cur.marker.setLatLng(latlng); drawPlots(); return; }
+  addingNew = false;
+  addPlot(latlng);
+}
+function startAdd() { addingNew = true; drawPlots(); flashMap(); }
 function removePlot(i) { map.removeLayer(plots[i].marker); plots.splice(i, 1); drawPlots(); }
-map.on('click', e => { if (step === 1) addPlot(e.latlng); });
+map.on('click', e => { if (step === 1) placePlot(e.latlng); });
+
+// Typed coordinates, e.g. pasted from Google Maps: "13.4800, -88.1800" (also accepts N/S/E/W/O letters).
+$('coords_go').onclick = () => {
+  const raw = $('coords').value.trim().toUpperCase().replace(/,(?=\d)/g, '.');  // "13,48" decimal commas
+  const nums = raw.match(/-?\d+(\.\d+)?/g);
+  const bad = () => { $('coords_msg').innerHTML = `<div class="msg error">${n('coords_bad')}</div>`; };
+  if (!nums || nums.length < 2) return bad();
+  let [lat, lon] = nums.slice(0, 2).map(Number);
+  // typed as lon, lat (El Salvador: longitude about -87 to -91, latitude about 13 to 14.5)
+  if ((Math.abs(lat) > 90 && Math.abs(lon) <= 90) || (Math.abs(lat) > 86 && Math.abs(lat) < 92 && lon > 12 && lon < 15.5)) [lat, lon] = [lon, lat];
+  if (/S/.test(raw)) lat = -Math.abs(lat);
+  if (/[WO]/.test(raw)) lon = -Math.abs(lon);
+  // El Salvador is west of Greenwich: "13.48, 88.18" almost always means -88.18
+  if (lon > 86 && lon < 92 && lat > 12 && lat < 15.5) lon = -lon;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return bad();
+  const ll = L.latLng(lat, lon);
+  map.setView(ll, 15);
+  placePlot(ll);
+};
+$('coords').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('coords_go').click(); } };
+// Phones can take 10-20 s for a first GPS fix, and each failure needs its own advice.
 $('locate').onclick = () => {
-  const fail = () => { $('map_status').innerHTML = `<small class="alert">${n('no_location')}</small>`; };
+  const say = (cls, k) => { $('map_status').innerHTML = `<div class="msg ${cls}">${n(k)}</div>`; };
+  const fail = e => {
+    $('locate').disabled = false;
+    say('error', !window.isSecureContext ? 'geo_insecure' : e && e.code === 1 ? 'geo_denied' : e && e.code === 3 ? 'geo_timeout' : 'no_location');
+  };
   if (!navigator.geolocation) return fail();
-  $('map_status').innerHTML = `<small>${n('locating')}</small>`;
+  $('locate').disabled = true;
+  say('info', 'locating');
   navigator.geolocation.getCurrentPosition(p => {
+    $('locate').disabled = false;
     const ll = L.latLng(p.coords.latitude, p.coords.longitude);
-    map.setView(ll, 14);
-    addPlot(ll);
-  }, fail, {timeout: 10000});
+    map.setView(ll, 15);
+    placePlot(ll);
+    $('map_wrap').scrollIntoView({behavior: 'smooth', block: 'center'});
+  }, fail, {enableHighAccuracy: true, timeout: 25000, maximumAge: 60000});
 };
 function drawPlots() {
-  $('map_hint').hidden = plots.length > 0 || step !== 1;
+  $('map_hint').hidden = !(plots.length === 0 || addingNew) || step !== 1;
+  $('map_hint').textContent = tr(addingNew ? 'map_hint_new' : 'map_hint');
   $('plots').innerHTML = plots.map((p, i) =>
     `<div class="plot-row"><span class="chip">${icon('pin', 16)}${p.id}</span> <label>${n('area')} <input type="number" step="100" min="0" value="${p.m2}" style="width:120px"
-      onchange="plots[${i}].m2=+this.value"> m²</label> <small>${n('m2_hint')}</small> <button type="button" class="destructive small" onclick="removePlot(${i})">${n('remove')}</button></div>`).join('');
+      onchange="plots[${i}].m2=+this.value"> m²</label> <small>${n('m2_hint')}</small> <button type="button" class="destructive small" onclick="removePlot(${i})">${n('remove')}</button></div>`).join('')
+    + (addingNew ? `<div class="msg info">${n('adding_new')}</div>`
+      : plots.length && plots.length < 10 ? `<div><button type="button" class="tertiary" onclick="startAdd()">${icon('plus', 20)}${n('add_plot')}</button> <small>${n('move_hint')}</small></div>` : '');
 }
 
 // --- planting range and harvest ---
@@ -839,6 +933,7 @@ function show(s) {
   $('restart').innerHTML = `${icon('restart', 20)}${n('restart')}`;
   $('next').innerHTML = `${n(s === LAST_QUESTION ? 'compute' : 'next')}${icon(s === LAST_QUESTION ? 'chart' : 'right', 20)}`;
   $('locate').innerHTML = `${icon('locate', 20)}${n('use_location')}`;
+  $('coords_go').textContent = tr('coords_go');
   if (s === 1) { setSatellite(null); placeMap('map_slot_plot'); }
   drawPlots();
 }
@@ -865,12 +960,12 @@ function askMore() {
     <button type="button" onclick="compute()">${n('no_compute')}${icon('chart', 20)}</button></div></div>`;
   $('step_msg').scrollIntoView({behavior: 'smooth', block: 'center'});
 }
-function addMore() { $('step_msg').textContent = ''; show(1); flashMap(); }
+function addMore() { $('step_msg').textContent = ''; show(1); startAdd(); }
 $('back').onclick = () => { $('step_msg').textContent = ''; show(step - 1); };
 $('edit').onclick = () => show(1);
 $('restart').onclick = () => {
   while (plots.length) removePlot(0);
-  last = null;
+  last = null; addingNew = false; $('coords').value = '';
   show(1);  // moves the map back to step 1 before the results (which hold it) are cleared
   $('result').innerHTML = ''; map.setView([13.7, -88.5], 8);
 };
@@ -880,14 +975,27 @@ function toast(msg) {
 }
 $('share').onclick = async () => {
   if (!last) return;
-  const text = last.plots.map(p => {
-    const b = bestOf(p).best;
-    return b ? fill('share_text', {p: p.plot_id, r: tr(b.id), i: b.index, a: b.range_80[0], b: b.range_80[1]}) : '';
-  }).filter(Boolean).join('\n');
+  // One plain-text message with the whole result: WhatsApp and others drop `text` when a separate
+  // `url` is given, and the link alone opens the empty start page, not this result.
+  const blocks = last.plots.map(p => {
+    const {best, differs} = bestOf(p);
+    const tp = p.terrain_profile, dec = tp.climate.last_decade || tp.climate;
+    const top = p.risks.filter(r => !RELATIVE_RISKS.includes(r.event)).sort((a, b) => b.p - a.p)[0];
+    const lines = [fill('sh_plot', {p: p.plot_id, s: tr(p.season + '_short')})];
+    if (best) lines.push(differs ? fill('sh_best', {r: tr(best.id), i: best.index, a: best.range_80[0], b: best.range_80[1]})
+                                 : fill('sh_equal', {i: best.index, a: best.range_80[0], b: best.range_80[1]}));
+    if (top) lines.push(fill('sh_risk', {r: tr(top.event), p: Math.round(top.p * 100)}));
+    lines.push(fill('sh_rain', {mm: dec.mean_annual_rain_mm.toLocaleString(loc()), d: dec.median_rain_onset ? fmtMD(dec.median_rain_onset) : '–'}));
+    return lines.join('\n');
+  });
+  const text = `AgroRadar\n\n${blocks.join('\n\n')}\n\n${tr('sh_try')} ${location.origin}`;
   try {
-    if (navigator.share) { await navigator.share({title: 'AgroRadar', text, url: location.href}); return; }
-    await navigator.clipboard.writeText(`${text}\n${location.href}`); toast(tr('shared'));
-  } catch (e) { /* the share sheet was closed */ }
+    if (navigator.share) { await navigator.share({title: 'AgroRadar', text}); return; }
+    await navigator.clipboard.writeText(text); toast(tr('shared'));
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;  // the share sheet was closed
+    $('step_msg').innerHTML = `<div class="msg info" style="white-space:pre-wrap">${esc(text)}</div>`;  // copy by hand
+  }
 };
 
 async function compute() {
@@ -992,10 +1100,13 @@ function plotCard(p, pi, d) {
   h += `</div><div class="legend-note"><span><i></i>${n('lg_range')}</span><span><i class="ln"></i>${n('lg_value')}</span></div>`;
 
   // rain over the last decade
-  h += `<h4>${n('climate_title')}</h4><p class="sub">${esc(fill('climate_sub', {y: dec.years}))}</p><div class="metrics n${1 + !!dec.median_rain_onset + (g.mean_ndvi != null)}">
+  h += `<h4>${n('climate_title')}</h4><p class="sub">${esc(fill('climate_sub', {y: dec.years}))}</p><div class="metrics n${Math.min(4, 1 + !!dec.median_rain_onset + !!tp.climate.cycle_rain_mm + (g.mean_ndvi != null))}">
     <div class="m sky"><div class="top"><span class="mi">${icon('rain', 22)}</span></div><b>${dec.mean_annual_rain_mm.toLocaleString(loc())} <small>mm</small></b><span>${n('rain_label')}</span></div>
     ${dec.median_rain_onset ? `<div class="m lime"><div class="top"><span class="mi">${icon('calendar', 22)}</span></div><span>${n('onset_label')}</span><b>${esc(fmtMD(dec.median_rain_onset))}</b>
       ${dec.rain_onset_range ? `<small>${esc(fill('onset_range', {a: fmtMD(dec.rain_onset_range[0]), b: fmtMD(dec.rain_onset_range[1])}))}</small>` : ''}</div>` : ''}
+    ${tp.climate.cycle_rain_mm ? `<div class="m sky"><div class="top"><span class="mi">${icon('drop', 22)}</span></div><span>${n('cycle_rain_label')}</span>
+      <b>${tp.climate.cycle_rain_mm.normal_year.toLocaleString(loc())} <small>mm</small></b>
+      <small>${esc(fill('cycle_rain_dry', {mm: tp.climate.cycle_rain_mm.dry_year.toLocaleString(loc())}))}</small></div>` : ''}
     ${g.mean_ndvi != null ? `<div class="m lime"><div class="top"><span class="mi">${icon('leaf', 22)}</span>${g.trend_10_years ? `<span class="pill">${n(g.trend_10_years)}</span>` : ''}</div><b>${g.mean_ndvi}</b><span>${n('ndvi_label')}</span><small>${n('ndvi_help')}</small></div>` : ''}
   </div>`;
 
@@ -1009,7 +1120,10 @@ function plotCard(p, pi, d) {
     ${t ? `<small>${esc(fill('erosion_in', {n: t.years}))}: <b>${n(t.direction)}</b></small>` : ''}</div></div>`;
 
   // risks as cards
-  h += `<h4>${n('risks_title')}</h4><p class="sub">${n('risks_sub')}</p><div class="risks">${p.risks.map(r => `<div class="risk">
+  // rain_deficit / rain_anomaly are measured against the place's own years, so they read ~25% / ~16%
+  // everywhere; the season-rain card above shows the real difference between places instead
+  const shown = p.risks.filter(r => !RELATIVE_RISKS.includes(r.event));
+  h += `<h4>${n('risks_title')}</h4><p class="sub">${n('risks_sub')}</p><div class="risks">${shown.map(r => `<div class="risk">
       <div class="row"><span class="nm"><span class="ri">${icon(RISK_ICON[r.event] || 'info', 18)}</span>${n(r.event)}</span><b>${Math.round(r.p * 100)}%</b></div>
       <div class="bar"><div class="range" style="left:${r.ci80[0] * 100}%;width:${(r.ci80[1] - r.ci80[0]) * 100}%"></div><div class="fill" style="width:${r.p * 100}%"></div></div>
       <small>${esc(fill('in_years', {k: r.k, n: r.n}))} · ${n('range80')} ${Math.round(r.ci80[0] * 100)}–${Math.round(r.ci80[1] * 100)}%</small></div>`).join('')}</div>`;

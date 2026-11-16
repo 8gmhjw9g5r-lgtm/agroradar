@@ -219,7 +219,11 @@ def analyze_plot(p, c, today, oni, phase, lang="es"):
                         "median_rain_onset": (date(2001, 1, 1) + timedelta(round(median(
                             f["rain_onset"].timetuple().tm_yday for f in feats if f["rain_onset"])) - 1)).strftime("%m-%d"),
                         "flowering_vpd_kpa": round(mean(f["flowering_vpd_kpa"] for f in feats), 2),
-                        "last_decade": _decade(feats)},  # what the page shows; the model uses all years
+                        "last_decade": _decade(feats),  # what the page shows; the model uses all years
+                        # rain during this crop's cycle, in mm: unlike rain_deficit / rain_anomaly (relative to
+                        # the place itself, so ~25% / ~16% everywhere), these numbers differ between places
+                        "cycle_rain_mm": {"normal_year": round(median(f["cycle_rain_mm"] for f in feats)),
+                                          "dry_year": round(M.percentile([f["cycle_rain_mm"] for f in feats], 0.25))}},
             "slope_pct": slope, "slope_source": slope_src, "mean_erosion_index": round(mean(eros), 1),
             "soil_moisture_anomaly_sd": sat.get("soil_moisture_anomaly_sd") if sat else None,
             "rootzone_moisture_anomaly_sd": sat.get("rootzone_moisture_anomaly_sd") if sat else None,
