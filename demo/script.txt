@@ -1,0 +1,7 @@
+# scene|spoken text (phonetic where the English voice needs help)|caption shown on screen
+1|This year, a long kah-NEE-koo-lah dried El Salvador's fields, and our farmers lost much of their harvest.|This year, a long canícula dried El Salvador's fields, and our farmers lost much of their harvest.
+2|What if they could see that risk before planting?|What if they could see that risk before planting?
+3|With AgroRadar, a farmer marks the plot, answers three questions, and sees which rotation is most likely to succeed.|With AgroRadar, a farmer marks the plot, answers three questions, and sees which rotation is most likely to succeed.
+4|It runs on NASA's free, open data: thirty-five years of climate, plus satellite greenness, slope and soil moisture.|It runs on NASA's free, open data: 35 years of climate, plus satellite greenness, slope and soil moisture.
+5|Today, El Salvador. Tomorrow, every farm facing a changing climate.|Today, El Salvador. Tomorrow, every farm facing a changing climate.
+6|AgroRadar, by Adapting Coo-SOO-kohs.|AgroRadar, by Adapting Cuzucos.

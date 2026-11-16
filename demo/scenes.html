@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AgroRadar demo scenes</title>
+<!-- Each keyframe of the 29-second demo is one 1920x1080 view of this page: scenes.html#k1, #k2 ...
+     build_video.py takes a screenshot of each and animates them. Brand: design/design-system.webp -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=block">
+<style>
+  :root { --evergreen:#185C3B; --leaf:#2F7A4F; --lime:#7ED957; --lime-soft:#EEF8E8; --sky:#0F7DB6; --clay:#5A544B; --mist:#EDEBE7; --canvas:#FAF9F4; --ink:#1F2A24; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:1920px; height:1080px; overflow:hidden; font-family:'Atkinson Hyperlegible', sans-serif; color:var(--ink); }
+  .k { position:absolute; inset:0; display:none; overflow:hidden; }
+  .k.on { display:block; }
+  .cap { position:absolute; left:50%; bottom:48px; transform:translateX(-50%); width:max-content; max-width:1760px; padding:16px 36px; border-radius:24px;
+         background:rgba(16,32,24,.82); color:#fff; font-size:36px; line-height:48px; text-align:center; font-weight:700; }
+  .chip { display:inline-flex; gap:12px; align-items:center; padding:10px 22px; border-radius:999px; font-size:26px; font-weight:700; }
+  .logo { height:84px; }
+
+  /* k1: the drought */
+  #k1 { background:linear-gradient(180deg, #FCEFD2 0%, #F2CF8E 55%, #DDA35A 100%); }
+  #k1 .sun { position:absolute; right:260px; top:110px; width:260px; height:260px; border-radius:50%; background:#F7C548;
+             box-shadow:0 0 0 40px rgba(247,197,72,.25), 0 0 0 100px rgba(247,197,72,.12); }
+  #k1 .head { position:absolute; left:120px; top:110px; }
+  #k1 .chip { background:rgba(255,255,255,.75); color:var(--evergreen); }
+  #k1 h1 { font-size:150px; line-height:150px; color:#5C3B12; margin-top:36px; letter-spacing:-2px; }
+  #k1 .def { font-size:38px; line-height:50px; color:#6B4A20; margin-top:18px; max-width:880px; }
+
+  /* k2: the question */
+  #k2 { background:radial-gradient(circle at 78% 50%, #23704A 0%, var(--evergreen) 45%, #0F3D27 100%); color:#fff; }
+  #k2 .rings { position:absolute; right:200px; top:50%; transform:translateY(-50%); }
+  #k2 h1 { position:absolute; left:140px; top:50%; transform:translateY(-50%); font-size:96px; line-height:112px; max-width:1100px; letter-spacing:-1px; }
+  #k2 h1 em { font-style:normal; color:var(--lime); }
+
+  /* k3: how it works */
+  .k3 { background:var(--canvas); }
+  .k3 .blob { position:absolute; right:-160px; top:-160px; width:1000px; height:900px; background:rgba(126,217,87,.22); border-radius:62% 38% 46% 54% / 60% 44% 56% 40%; }
+  .k3 .left { position:absolute; left:140px; top:110px; width:860px; }
+  .k3 h2 { font-size:76px; line-height:88px; color:var(--evergreen); margin:40px 0 44px; letter-spacing:-1px; }
+  .k3 .stepl { display:flex; gap:28px; align-items:center; padding:22px 28px; border-radius:28px; margin-bottom:18px; background:#fff;
+               box-shadow:0 18px 40px -18px rgba(24,92,59,.35); opacity:.55; }
+  .k3 .stepl.on { opacity:1; outline:4px solid var(--lime); }
+  .k3 .num { width:76px; height:76px; border-radius:50%; flex:none; display:grid; place-items:center; font-size:36px; font-weight:700; color:#fff;
+             background:linear-gradient(135deg, var(--lime), var(--leaf) 60%, var(--evergreen)); border:5px solid #fff; box-shadow:0 6px 14px -4px rgba(24,92,59,.5); }
+  .k3 .stepl b { display:block; font-size:40px; line-height:48px; }
+  .k3 .stepl span { font-size:28px; line-height:36px; color:var(--clay); }
+  .k3 .cap { left:140px; transform:none; max-width:900px; width:auto; text-align:left; bottom:72px; }
+  #k5b .vision { top:110px; transform:none; }
+  .phone { position:absolute; right:250px; top:56px; width:420px; height:892px; border-radius:64px; background:#16211B; padding:16px;
+           box-shadow:0 40px 80px -30px rgba(16,40,28,.65); }
+  .phone img { width:100%; height:100%; object-fit:cover; object-position:top; border-radius:50px; display:block; }
+
+  /* k4, k5a: NASA data over El Salvador */
+  .space { background:#071A2B center/cover no-repeat; }
+  .k4, #k5a { background-image:url(assets/el_salvador.jpg); background-size:1920px auto; background-position:center 46%; }
+  #k5b { background-image:url(assets/americas.jpg); background-size:cover; background-position:center; }
+  .shade { position:absolute; inset:0; background:linear-gradient(90deg, rgba(5,20,14,.88) 0%, rgba(5,20,14,.55) 45%, rgba(5,20,14,0) 75%); }
+  .pin { position:absolute; width:28px; height:28px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 14px rgba(126,217,87,.35), 0 0 0 34px rgba(126,217,87,.15); }
+  .pinlabel { position:absolute; color:#fff; font-size:30px; font-weight:700; text-shadow:0 2px 8px rgba(0,0,0,.7); }
+  .k4 .left { position:absolute; left:120px; top:90px; width:900px; color:#fff; }
+  .k4 h2 { font-size:72px; line-height:84px; letter-spacing:-1px; margin-bottom:36px; }
+  .k4 h2 em { font-style:normal; color:var(--lime); }
+  .src { display:flex; gap:24px; align-items:center; background:rgba(255,255,255,.95); color:var(--ink); border-radius:28px; padding:18px 26px; margin-bottom:16px; width:820px; }
+  .src .num { width:66px; height:66px; border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font-size:24px; font-weight:700;
+              background:linear-gradient(135deg, var(--lime), var(--leaf) 60%, var(--evergreen)); border:4px solid #fff; box-shadow:0 6px 14px -4px rgba(24,92,59,.5); }
+  .src b { display:block; font-size:34px; line-height:42px; } .src span { font-size:26px; line-height:32px; color:var(--clay); }
+  .src.off { visibility:hidden; }
+
+  /* k5: the vision */
+  .vision { position:absolute; left:120px; top:50%; transform:translateY(-60%); color:#fff; max-width:1200px; }
+  .vision h1 { font-size:120px; line-height:128px; letter-spacing:-2px; text-shadow:0 4px 24px rgba(0,0,0,.5); }
+  .vision h1 em { font-style:normal; color:var(--lime); }
+  .dot { position:absolute; width:16px; height:16px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 8px rgba(126,217,87,.3); }
+
+  /* k6: end card */
+  #k6 { background:var(--canvas); text-align:center; }
+  #k6 .blob { position:absolute; left:-200px; bottom:-260px; width:900px; height:800px; background:rgba(126,217,87,.22); border-radius:62% 38% 46% 54% / 60% 44% 56% 40%; }
+  #k6 .blob2 { position:absolute; right:-200px; top:-240px; width:800px; height:700px; background:rgba(126,217,87,.18); border-radius:44% 56% 38% 62% / 52% 40% 60% 48%; }
+  #k6 .in { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  #k6 .logo { height:150px; }
+  #k6 .by { font-size:44px; color:var(--clay); margin-top:28px; }
+  #k6 .team { font-size:108px; line-height:116px; color:var(--evergreen); letter-spacing:-1px; font-weight:700; }
+  #k6 .ch { margin-top:22px; font-size:32px; color:var(--leaf); font-weight:700; }
+  #k6 .members { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; max-width:1500px; margin-top:44px; }
+  #k6 .members span { background:#fff; border-radius:999px; padding:12px 26px; font-size:32px; font-weight:700; box-shadow:0 10px 24px -14px rgba(24,92,59,.45); }
+  #k6 .url { margin-top:40px; font-size:34px; color:var(--evergreen); font-weight:700; }
+</style>
+</head>
+<body>
+
+<section class="k" id="k1">
+  <div class="sun"></div>
+  <svg style="position:absolute;left:0;bottom:0" width="1920" height="560" viewBox="0 0 1920 560">
+    <rect x="0" y="230" width="1920" height="330" fill="#9C7444"/>
+    <!-- wilted maize: stalks on the soil line, leaves drooping down -->
+    <g stroke="#B08A45" stroke-width="12" fill="none" stroke-linecap="round">
+      <path d="M1150 236 C1146 150 1158 80 1140 10"/><path d="M1150 180 c-50 -10 -100 20 -120 80"/><path d="M1148 120 c50 -14 100 14 118 74"/><path d="M1142 60 c-40 -16 -80 6 -96 48"/>
+      <path d="M1410 236 C1414 160 1402 100 1420 40"/><path d="M1410 190 c50 -6 96 30 110 86"/><path d="M1412 130 c-50 -8 -94 22 -110 76"/><path d="M1418 76 c36 -12 70 8 82 44"/>
+      <path d="M1660 236 C1656 170 1668 120 1654 70"/><path d="M1660 196 c-44 -4 -82 28 -94 76"/><path d="M1658 136 c42 -6 78 22 90 68"/>
+    </g>
+    <!-- cracks in the dry soil -->
+    <g stroke="#6E4E27" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M80 300 l120 40 l60 -30 l140 70 l90 -20 l40 90"/><path d="M420 330 l-40 90 l80 60"/><path d="M640 280 l100 60 l180 -10 l60 80 l150 20"/>
+      <path d="M930 340 l-30 110 l90 70"/><path d="M1180 300 l140 50 l120 -30 l100 90 l200 10"/><path d="M1440 320 l-20 120 l-120 60"/>
+      <path d="M1700 290 l60 90 l140 -20"/><path d="M260 420 l140 30 l100 80"/><path d="M1060 420 l180 40 l60 70"/>
+    </g>
+  </svg>
+  <div class="head">
+    <span class="chip">NASA Space Apps · Field Shift: Adapting Farms with NASA Data</span>
+    <h1>Canícula.</h1>
+    <p class="def">A long dry spell in the middle of El Salvador’s rainy season.</p>
+  </div>
+  <p class="cap">This year, a long canícula dried El Salvador’s fields, and our farmers lost much of their harvest.</p>
+</section>
+
+<section class="k" id="k2">
+  <svg class="rings" width="560" height="560" viewBox="0 0 560 560" fill="none" stroke="#7ED957" stroke-linecap="round">
+    <circle cx="280" cy="280" r="26" fill="#7ED957" stroke="none"/>
+    <path d="M200 200a113 113 0 0 0 0 160" stroke-width="18" opacity=".9"/><path d="M360 360a113 113 0 0 0 0 -160" stroke-width="18" opacity=".9"/>
+    <path d="M140 140a198 198 0 0 0 0 280" stroke-width="16" opacity=".6"/><path d="M420 420a198 198 0 0 0 0 -280" stroke-width="16" opacity=".6"/>
+    <path d="M80 80a283 283 0 0 0 0 400" stroke-width="14" opacity=".35"/><path d="M480 480a283 283 0 0 0 0 -400" stroke-width="14" opacity=".35"/>
+  </svg>
+  <h1>What if farmers could see that risk <em>before planting?</em></h1>
+</section>
+
+<section class="k k3" id="k3a" data-step="1" data-screen="screens/2_map.jpg"></section>
+<section class="k k3" id="k3b" data-step="2" data-screen="screens/3_questions.jpg"></section>
+<section class="k k3" id="k3c" data-step="3" data-screen="screens/4_result.jpg"></section>
+<section class="k k3" id="k3d" data-step="3" data-screen="screens/5_rotations.jpg"></section>
+
+<section class="k k4 space" id="k4a" data-show="2"></section>
+<section class="k k4 space" id="k4b" data-show="4"></section>
+
+<section class="k space" id="k5a">
+  <div class="shade"></div>
+  <div class="pin" style="left:1060px;top:600px"></div><div class="pinlabel" style="left:1110px;top:590px">El Salvador</div>
+  <div class="vision"><h1>Today,<br><em>El Salvador.</em></h1></div>
+</section>
+<section class="k space" id="k5b">
+  <div class="shade"></div>
+  <!-- farm regions: El Salvador, Guatemala, Mexico, US Midwest, Colombia, Brazil, West Africa -->
+  <div class="dot" style="left:712px;top:640px;width:26px;height:26px"></div><div class="dot" style="left:680px;top:612px"></div>
+  <div class="dot" style="left:560px;top:520px"></div><div class="dot" style="left:470px;top:440px"></div><div class="dot" style="left:640px;top:300px"></div>
+  <div class="dot" style="left:760px;top:250px"></div><div class="dot" style="left:880px;top:760px"></div><div class="dot" style="left:1060px;top:900px"></div>
+  <div class="dot" style="left:1180px;top:980px"></div><div class="dot" style="left:1760px;top:700px"></div><div class="dot" style="left:1850px;top:640px"></div>
+  <div class="vision"><h1>Tomorrow, every farm facing a <em>changing climate.</em></h1></div>
+</section>
+
+<section class="k" id="k6">
+  <div class="blob"></div><div class="blob2"></div>
+  <div class="in">
+    <img class="logo" src="../frontend/assets/logo.png" alt="AgroRadar">
+    <p class="by">created by</p>
+    <p class="team">Adapting Cuzucos</p>
+    <p class="ch">NASA Space Apps Challenge 2026 · Field Shift: Adapting Farms with NASA Data</p>
+    <div class="members"><span>Georgina Acevedo</span><span>Christopher Alvarenga</span><span>David Preza</span><span>María Vásquez</span><span>Eduardo Perez</span><span>Vanessa Alvarado</span></div>
+    <p class="url">agroradar.space</p>
+  </div>
+</section>
+
+<script>
+// Shared markup for the "how it works" and "NASA data" keyframes.
+const STEPS = [['Mark the plot', 'Tap the map, use GPS or paste coordinates'], ['Answer 3 questions', 'What, when, and what the land is like'],
+               ['See the best rotation', 'Success rate, risks and the 7-day weather']];
+document.querySelectorAll('.k3').forEach(k => {
+  k.innerHTML = `<div class="blob"></div><div class="left"><img class="logo" src="../frontend/assets/logo.png" alt=""><h2>How AgroRadar works</h2>
+    ${STEPS.map(([b, s], i) => `<div class="stepl${+k.dataset.step === i + 1 ? ' on' : ''}"><div class="num">${i + 1}</div><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>
+    <div class="phone"><img src="${k.dataset.screen}" alt=""></div>
+    <p class="cap">With AgroRadar, a farmer marks the plot, answers three questions, and sees which rotation is most likely to succeed.</p>`;
+});
+const SOURCES = [['NASA POWER', '35 years of daily rain and temperature'], ['MODIS (Terra)', 'Vegetation greenness from space'],
+                 ['NASADEM', 'Slope of every plot, 30 m detail'], ['SMAP', 'Soil moisture where the roots are']];
+document.querySelectorAll('.k4').forEach(k => {
+  k.innerHTML = `<div class="shade"></div><div class="pin" style="left:1060px;top:600px"></div><div class="pinlabel" style="left:1110px;top:590px">El Salvador</div>
+    <div class="left"><h2>Built on NASA’s <em>free and open data</em></h2>
+    ${SOURCES.map(([b, s], i) => `<div class="src${i < +k.dataset.show ? '' : ' off'}"><div class="num">${i + 1}</div><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>
+    <p class="cap">It runs on NASA’s free, open data: 35 years of climate, plus satellite greenness, slope and soil moisture.</p>`;
+});
+const show = () => { document.querySelectorAll('.k').forEach(k => k.classList.toggle('on', '#' + k.id === (location.hash || '#k1'))); };
+addEventListener('hashchange', show); show();
+</script>
+</body>
+</html>

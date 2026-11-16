@@ -97,3 +97,13 @@ docs/                   DECISIONS.md (sources and assumptions) and ROADMAP.md
 ```
 
 MIT licence. Each user puts their own key in `.env`; no key goes into the repository, and a test checks it.
+
+## Use of Super Intelligence (SI)
+
+Built by the team Adapting Cuzucos for NASA Space Apps 2026 (Field Shift: Adapting Farms with NASA Data).
+The idea, problem framing, scope and review of every change are the team's. SI tools used:
+
+- **Code, data scripts, tests and documentation:** written with Anthropic Claude (Claude Code) under the team's direction.
+- **Demo video (`demo/`):** script, scene graphics and editing script made with Claude; every frame carries a visible "AI-generated" watermark. App screenshots are real captures; backgrounds are NASA Blue Marble imagery.
+- **Narration audio (`demo/audio/voice_zara.mp3`):** AI-generated voice from ElevenLabs ("Zara"); also stated in the video file's metadata.
+- **In the app (optional):** Google Gemini writes a plain-language explanation when a key is set, checked by a rule checker (`backend/agent/`).

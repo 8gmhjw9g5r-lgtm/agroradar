@@ -7,3 +7,6 @@ GISportal-master.zip
 data/appeears/raw/
 data/appeears/tasks.json
 .DS_Store
+# demo video build outputs (rebuilt by demo/build_video.py)
+demo/frames/
+demo/audio/narration.wav
