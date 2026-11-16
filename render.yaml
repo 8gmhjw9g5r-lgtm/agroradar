@@ -1,0 +1,14 @@
+# Render blueprint: one web service for the page and the API.
+services:
+  - type: web
+    name: agroradar
+    runtime: python
+    plan: free            # sleeps after 15 min idle; "starter" stays awake
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.21     # same as the local .venv
+      - key: GEMINI_API_KEY
+        sync: false       # optional; set it in the Render dashboard, never in the repo

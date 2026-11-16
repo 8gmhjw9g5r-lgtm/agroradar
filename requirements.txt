@@ -1,4 +1,7 @@
-fastapi
-uvicorn
-pyyaml
-httpx
+# Exact versions tested on 2026-11-15, so the hosted copy matches this one.
+fastapi==0.128.8
+starlette==0.49.3
+pydantic==2.13.5
+uvicorn==0.39.0
+PyYAML==6.0.3
+httpx==0.28.1
