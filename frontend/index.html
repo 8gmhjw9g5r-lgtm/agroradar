@@ -322,6 +322,7 @@
 
   footer { max-width:860px; margin:24px auto 0; padding:24px 16px 32px; border-top:1px solid var(--mist); text-align:center; font-size:13px; line-height:20px; color:var(--clay); }
   footer b { color:var(--evergreen); }
+  footer .code { display:inline-block; margin-top:4px; color:var(--evergreen); font-weight:700; text-underline-offset:3px; }
   .toast { position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:2000; background:var(--evergreen); color:#fff; padding:10px 20px; border-radius:var(--pill); box-shadow:var(--e4); font-weight:700; }
 </style>
 </head>
@@ -494,7 +495,7 @@
     </div>
   </div>
 </main>
-<footer><span data-t="footer"></span></footer>
+<footer><span data-t="footer"></span><br><a class="code" href="https://github.com/8gmhjw9g5r-lgtm/agroradar" target="_blank" rel="noopener" data-t="code_link"></a></footer>
 <script>
 const T = {
   es: {
@@ -617,6 +618,7 @@ const T = {
     default: 'Es una vista general útil para cualquier parcela.',
     forecast_title: 'Clima de los próximos 7 días', today: 'Hoy',
     relang: 'Vuelva a calcular para ver los avisos y la explicación en español.',
+    code_link: 'Ver el código en GitHub',
     footer: '© 2026 AgroRadar · Creado por <b>Adapting Cuzucos</b> para NASA Space Apps Challenge',
     maize_maize: 'Maíz tras maíz', maize_bean: 'Maíz con frijol', maize_green_manure: 'Maíz con abono verde',
     el_nino_w: 'El Niño', la_nina_w: 'La Niña', neutral_w: 'neutral',
@@ -742,6 +744,7 @@ const T = {
     default: 'It is a useful general view for any plot.',
     forecast_title: 'Weather for the next 7 days', today: 'Today',
     relang: 'Calculate again to see the warnings and explanation in English.',
+    code_link: 'View the code on GitHub',
     footer: '© 2026 AgroRadar · Created by <b>Adapting Cuzucos</b> for NASA Space Apps Challenge',
     maize_maize: 'Corn after corn', maize_bean: 'Corn with beans', maize_green_manure: 'Corn with green manure',
     el_nino_w: 'El Niño', la_nina_w: 'La Niña', neutral_w: 'neutral',

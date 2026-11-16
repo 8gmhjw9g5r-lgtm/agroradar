@@ -29,7 +29,7 @@ It addresses Field Shift by turning NASA's free and open Earth data — 35 years
 
 https://agroradar.space
 
-**[Optional second link: the code at https://github.com/8gmhjw9g5r-lgtm/agroradar — only once the repository is made public; right now it is private and judges cannot open it.]**
+Code: https://github.com/8gmhjw9g5r-lgtm/agroradar (public). It was not added to the form before it locked, so the site's footer links to it ("View the code on GitHub").
 
 ---
 
