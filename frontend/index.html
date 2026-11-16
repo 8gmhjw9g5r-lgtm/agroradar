@@ -257,6 +257,11 @@
   .m b { font-size:28px; line-height:34px; } .m b small { font-size:14px; font-weight:400; }
   .m span { font-size:15px; line-height:22px; }
   .pill { border:1.5px solid var(--ink); border-radius:var(--pill); padding:0 10px; font-size:12px; line-height:20px; font-weight:700; color:var(--ink); white-space:nowrap; }
+  .moist .m b { font-size:22px; line-height:28px; }
+  .moist .scale { position:relative; height:10px; border-radius:var(--pill); margin:12px 0 4px; background:linear-gradient(90deg, #B59F86, var(--surface) 50%, #7DB8DA); }
+  .moist .scale i { position:absolute; top:50%; width:18px; height:18px; margin:-9px 0 0 -9px; border-radius:50%; background:var(--sky); border:3px solid var(--surface); box-shadow:0 0 0 1.5px var(--ink); }
+  .moist .scale.dry i { background:var(--clay); }
+  .moist .ends { display:flex; justify-content:space-between; font-size:12px; line-height:16px; }
   .land { display:grid; grid-template-columns:auto 1fr; gap:20px; align-items:center; background:var(--clay-soft); border-radius:var(--r-xl); padding:20px; margin-top:12px; }
   .land .big { text-align:center; display:flex; flex-direction:column; align-items:center; } .land .big b { display:block; font-size:40px; line-height:44px; } .land .big .pill { display:inline-block; margin-top:8px; }
   .land p { margin:0 0 8px; } .land small { display:block; margin-top:4px; }
@@ -573,6 +578,14 @@ const T = {
     cycle_rain_label: 'Lluvia mientras crece su cultivo', cycle_rain_dry: 'En un año normal. En un año seco (1 de cada 4): {mm} mm o menos.',
     rain_label: 'Llueve al año', onset_label: 'Las lluvias suelen empezar alrededor del', onset_range: 'En estos años, entre el {a} y el {b}.',
     ndvi_label: 'Verdor de la vegetación (NDVI)', ndvi_help: 'De 0 a 1: más alto, más verde. Satélite NASA MODIS.',
+    moist_title: 'Humedad del suelo ahora',
+    moist_sub: 'Últimos 90 días comparados con los mismos días de 2015 en adelante. Satélite NASA SMAP (celdas de unos 9 km): describe la zona, no su parcela.',
+    moist_surface: 'Capa de arriba (0 a 5 cm)', moist_surface_help: 'Se moja y se seca rápido con cada lluvia.',
+    moist_root: 'Donde están las raíces (hasta 1 m)', moist_root_help: 'Es el agua que de verdad usa la planta.',
+    moist_much_drier: 'Mucho más seco de lo normal', moist_drier: 'Más seco de lo normal', moist_normal: 'Normal para estas fechas',
+    moist_wetter: 'Más húmedo de lo normal', moist_much_wetter: 'Mucho más húmedo de lo normal',
+    moist_dry_end: 'Más seco', moist_wet_end: 'Más húmedo',
+    moist_note: 'Esto no cambia su resultado: muestra cómo viene la temporada. Si las raíces están secas, revise la humedad en su parcela antes de sembrar.',
     land_title: 'Su terreno y la erosión',
     slope: 'Pendiente', flat_w: 'Plano', moderate_w: 'Moderado', steep_w: 'Empinado',
     land_flat: 'En terreno plano la lluvia casi no arrastra suelo, así que la forma de rotar cambia poco su resultado.',
@@ -690,6 +703,14 @@ const T = {
     cycle_rain_label: 'Rain while your crop grows', cycle_rain_dry: 'In a normal year. In a dry year (1 in 4): {mm} mm or less.',
     rain_label: 'Rain per year', onset_label: 'Rain typically starts around', onset_range: 'In these years, between {a} and {b}.',
     ndvi_label: 'Vegetation greenness (NDVI)', ndvi_help: 'From 0 to 1: higher is greener. NASA MODIS satellite.',
+    moist_title: 'Soil moisture now',
+    moist_sub: 'Last 90 days compared with the same days since 2015. NASA SMAP satellite (cells of about 9 km): it describes the area, not your plot.',
+    moist_surface: 'Top layer (0 to 5 cm)', moist_surface_help: 'Gets wet and dries quickly with each rain.',
+    moist_root: 'Where the roots are (down to 1 m)', moist_root_help: 'This is the water the plant really uses.',
+    moist_much_drier: 'Much drier than usual', moist_drier: 'Drier than usual', moist_normal: 'Normal for this time of year',
+    moist_wetter: 'Wetter than usual', moist_much_wetter: 'Much wetter than usual',
+    moist_dry_end: 'Drier', moist_wet_end: 'Wetter',
+    moist_note: 'This does not change your result: it shows how the season is going. If the roots are dry, check the moisture in your plot before planting.',
     land_title: 'Your land and erosion',
     slope: 'Slope', flat_w: 'Flat', moderate_w: 'Moderate', steep_w: 'Steep',
     land_flat: 'On flat land the rain barely carries soil away, so how you rotate changes your result very little.',
@@ -1109,6 +1130,21 @@ function plotCard(p, pi, d) {
       <small>${esc(fill('cycle_rain_dry', {mm: tp.climate.cycle_rain_mm.dry_year.toLocaleString(loc())}))}</small></div>` : ''}
     ${g.mean_ndvi != null ? `<div class="m lime"><div class="top"><span class="mi">${icon('leaf', 22)}</span>${g.trend_10_years ? `<span class="pill">${n(g.trend_10_years)}</span>` : ''}</div><b>${g.mean_ndvi}</b><span>${n('ndvi_label')}</span><small>${n('ndvi_help')}</small></div>` : ''}
   </div>`;
+
+  // soil moisture now (SMAP): shown only; it does not enter the index (see docs/SOIL_MOISTURE_ALERTS.md)
+  // word cut-offs at 0.5 and 1.5 standard deviations are display labels, not model thresholds
+  const moist = [['surface', tp.soil_moisture_anomaly_sd, 'drop'], ['root', tp.rootzone_moisture_anomaly_sd, 'sprout']].filter(m => m[1] != null);
+  if (moist.length) {
+    const word = sd => sd <= -1.5 ? 'much_drier' : sd <= -0.5 ? 'drier' : sd < 0.5 ? 'normal' : sd < 1.5 ? 'wetter' : 'much_wetter';
+    const pos = sd => 50 + 50 * Math.max(-2.5, Math.min(2.5, sd)) / 2.5;
+    h += `<h4>${n('moist_title')}</h4><p class="sub">${n('moist_sub')}</p><div class="metrics moist n${moist.length}">${moist.map(([k, sd, ic]) => `
+      <div class="m ${sd <= -0.5 ? 'clay' : 'sky'}"><div class="top"><span class="mi">${icon(ic, 22)}</span></div><span>${n('moist_' + k)}</span>
+        <b>${n('moist_' + word(sd))}</b>
+        <div class="scale${sd <= -0.5 ? ' dry' : ''}" role="img" aria-label="${n('moist_' + word(sd))}"><i style="left:${pos(sd)}%"></i></div>
+        <div class="ends"><span>${n('moist_dry_end')}</span><span>${n('moist_wet_end')}</span></div>
+        <small>${n('moist_' + k + '_help')}</small></div>`).join('')}</div>
+      <p class="sub">${n('moist_note')}</p>`;
+  }
 
   // land, separate from rain, with its effect
   const cls = tp.slope_pct < 5 ? 'flat' : tp.slope_pct < 15 ? 'moderate' : 'steep';

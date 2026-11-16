@@ -84,6 +84,60 @@
   #k6 .members { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; max-width:1500px; margin-top:44px; }
   #k6 .members span { background:#fff; border-radius:999px; padding:12px 26px; font-size:32px; font-weight:700; box-shadow:0 10px 24px -14px rgba(24,92,59,.45); }
   #k6 .url { margin-top:40px; font-size:34px; color:var(--evergreen); font-weight:700; }
+  .rdot { display:none; }
+
+  /* ---------- Reel (portrait 1080x1920): scenes.html?reel#k1 ----------
+     Instagram/TikTok cover the bottom ~350 px and the right ~140 px with their UI: text stays clear of both. */
+  html.reel, html.reel body { width:1080px; height:1920px; }
+  .reel .cap { bottom:380px; max-width:940px; width:940px; font-size:38px; line-height:50px; padding:20px 30px; }
+  .reel .logo { height:72px; }
+  /* k1 */
+  .reel #k1 .head { left:70px; top:150px; right:70px; }
+  .reel #k1 .chip { font-size:22px; padding:8px 18px; }
+  .reel #k1 h1 { font-size:150px; line-height:150px; margin-top:40px; }
+  .reel #k1 .def { font-size:42px; line-height:56px; max-width:900px; }
+  .reel #k1 .sun { right:-60px; top:720px; width:300px; height:300px; }
+  .reel #k1 { background:linear-gradient(180deg, #FCEFD2 0%, #F2CF8E 40%, #DDA35A 66%, #9C7444 66%); }
+  .reel #k1 svg { left:-640px !important; bottom:330px !important; }  /* wilted corn in the narrow frame, above the Reels UI */
+  /* k2 */
+  .reel #k2 .rings { right:50%; top:200px; transform:translateX(50%) scale(.9); }
+  .reel #k2 h1 { left:80px; right:80px; top:880px; transform:none; font-size:92px; line-height:108px; }
+  /* k3 */
+  .reel .k3 .left { left:70px; top:120px; width:940px; text-align:center; }
+  .reel .k3 h2 { font-size:64px; line-height:76px; margin:24px 0 0; }
+  .reel .k3 .stepl { position:absolute; left:0; right:0; top:1100px; text-align:left; opacity:1; }
+  .reel .k3 .stepl:not(.on) { display:none; }
+  .reel .phone { right:auto; left:50%; transform:translateX(-50%); top:330px; width:380px; height:820px; border-radius:58px; padding:14px; }
+  .reel .phone img { border-radius:46px; }
+  .reel .k3 .phone { top:330px; width:350px; height:756px; }
+  .reel .k3 .stepl { top:990px; padding:16px 24px; }
+  .reel .k3 .cap { left:50%; transform:translateX(-50%); bottom:380px; text-align:center; width:940px; max-width:940px; }
+  .reel .k3 .blob { right:-400px; top:-200px; }
+  /* k4, k5: El Salvador framed in portrait */
+  .reel .k4, .reel #k5a { background-size:auto 2600px; background-position:59% 88%; }  /* El Salvador at about (540, 720) */
+  .reel #k5b { background-size:auto 1920px; background-position:43% center; }
+  .reel .shade { background:linear-gradient(180deg, rgba(5,20,14,.85) 0%, rgba(5,20,14,.35) 30%, rgba(5,20,14,.35) 55%, rgba(5,20,14,.85) 100%); }
+  .reel .pin { left:526px !important; top:706px !important; }
+  .reel .pinlabel { left:574px !important; top:694px !important; font-size:34px; }
+  .reel .k4 .left { left:70px; top:130px; width:940px; }
+  .reel .k4 h2 { font-size:68px; line-height:80px; margin-bottom:0; }
+  .reel .k4 .srcs { position:absolute; left:0; top:690px; }
+  .reel .src { width:940px; padding:12px 22px; margin-bottom:10px; }
+  .reel .src .num { width:56px; height:56px; font-size:22px; }
+  .reel .src b { font-size:32px; line-height:38px; } .reel .src span { font-size:24px; }
+  .reel .k4 .cap { bottom:370px; }
+  .reel .vision { left:70px; right:70px; top:160px; transform:none; }
+  .reel .vision h1 { font-size:110px; line-height:118px; }
+  .reel #k5b .vision { top:160px; }
+  .reel #k5b .dot { display:none; } .reel #k5b .rdot { display:block; }
+  /* k6 */
+  .reel #k6 .in { padding:0 60px; }
+  .reel #k6 .logo { height:120px; }
+  .reel #k6 .team { font-size:96px; line-height:104px; }
+  .reel #k6 .ch { font-size:30px; line-height:40px; max-width:900px; }
+  .reel #k6 .members { max-width:900px; gap:12px; }
+  .reel #k6 .members span { font-size:32px; padding:12px 24px; }
+  .reel #k6 .in { justify-content:flex-start; padding-top:300px; }
 </style>
 </head>
 <body>
@@ -143,6 +197,10 @@
   <div class="dot" style="left:560px;top:520px"></div><div class="dot" style="left:470px;top:440px"></div><div class="dot" style="left:640px;top:300px"></div>
   <div class="dot" style="left:760px;top:250px"></div><div class="dot" style="left:880px;top:760px"></div><div class="dot" style="left:1060px;top:900px"></div>
   <div class="dot" style="left:1180px;top:980px"></div><div class="dot" style="left:1760px;top:700px"></div><div class="dot" style="left:1850px;top:640px"></div>
+  <!-- the same regions, framed for the portrait reel -->
+  <div class="dot rdot" style="left:300px;top:1115px;width:26px;height:26px"></div><div class="dot rdot" style="left:272px;top:1082px"></div>
+  <div class="dot rdot" style="left:120px;top:960px"></div><div class="dot rdot" style="left:200px;top:640px"></div><div class="dot rdot" style="left:370px;top:560px"></div>
+  <div class="dot rdot" style="left:535px;top:1290px"></div><div class="dot rdot" style="left:800px;top:1420px"></div><div class="dot rdot" style="left:960px;top:1530px"></div>
   <div class="vision"><h1>Tomorrow, every farm facing a <em>changing climate.</em></h1></div>
 </section>
 
@@ -172,10 +230,11 @@ const SOURCES = [['NASA POWER', '35 years of daily rain and temperature'], ['MOD
                  ['NASADEM', 'Slope of every plot, 30 m detail'], ['SMAP', 'Soil moisture where the roots are']];
 document.querySelectorAll('.k4').forEach(k => {
   k.innerHTML = `<div class="shade"></div><div class="pin" style="left:1060px;top:600px"></div><div class="pinlabel" style="left:1110px;top:590px">El Salvador</div>
-    <div class="left"><h2>Built on NASA’s <em>free and open data</em></h2>
-    ${SOURCES.map(([b, s], i) => `<div class="src${i < +k.dataset.show ? '' : ' off'}"><div class="num">${i + 1}</div><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>
+    <div class="left"><h2>Built on NASA’s <em>free and open data</em></h2><div class="srcs">
+    ${SOURCES.map(([b, s], i) => `<div class="src${i < +k.dataset.show ? '' : ' off'}"><div class="num">${i + 1}</div><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div></div>
     <p class="cap">It runs on NASA’s free, open data: 35 years of climate, plus satellite greenness, slope and soil moisture.</p>`;
 });
+if (location.search.includes('reel')) document.documentElement.classList.add('reel');
 const show = () => { document.querySelectorAll('.k').forEach(k => k.classList.toggle('on', '#' + k.id === (location.hash || '#k1'))); };
 addEventListener('hashchange', show); show();
 </script>

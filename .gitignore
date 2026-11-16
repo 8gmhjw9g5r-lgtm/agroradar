@@ -10,3 +10,5 @@ data/appeears/tasks.json
 # demo video build outputs (rebuilt by demo/build_video.py)
 demo/frames/
 demo/audio/narration.wav
+demo/frames_reel/
+demo/journey/frames/

@@ -13,7 +13,10 @@ import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent
-W, H, FPS, LENGTH = 1920, 1080, 30, 29.0
+REEL = "reel" in sys.argv[1:]  # `build_video.py reel`: portrait 1080x1920 for Instagram/TikTok/Shorts
+W, H, FPS, LENGTH = (1080, 1920, 30, 29.0) if REEL else (1920, 1080, 30, 29.0)
+FRAMES = HERE / ("frames_reel" if REEL else "frames")
+OUT = HERE / ("agroradar-reel.mp4" if REEL else "agroradar-demo.mp4")
 FADE = 0.4  # cross-fade between stills, seconds
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
@@ -41,7 +44,7 @@ TIMELINE = [
 ]
 ZOOM = {"drought": 0.06, "question": 0.04, "how": 0.03, "nasa": 0.06, "vision": 0.07, "end": 0.02}
 
-stills = {k: Image.open(HERE / "frames" / f"{k}.png").convert("RGB") for _, k, _ in TIMELINE}
+stills = {k: Image.open(FRAMES / f"{k}.png").convert("RGB") for _, k, _ in TIMELINE}
 ends = [t for _, _, t in TIMELINE[1:]] + [LENGTH]
 groups = {}
 for (g, _, t), e in zip(TIMELINE, ends):
@@ -60,7 +63,8 @@ def watermark():
     d = ImageDraw.Draw(mark)
     d.rounded_rectangle((0, 0, w - 1, h - 1), radius=h // 2, fill=(16, 32, 24, 170), outline=(255, 255, 255, 200), width=2)
     d.text((pad_x - x0, pad_y - y0), text, font=font, fill=(255, 255, 255, 240))
-    return mark, (W - w - 36, 32)  # top-right corner, clear of captions and logos
+    # top-right corner, clear of captions and logos; the reel keeps it inside the area Reels leaves visible
+    return mark, ((W - w) // 2, 40) if REEL else (W - w - 36, 32)
 
 
 MARK, MARK_AT = watermark()
@@ -113,7 +117,7 @@ def narration(out):
 def main():
     wav = HERE / "audio" / "narration.wav"
     narration(wav)
-    out = HERE / "agroradar-demo.mp4"
+    out = OUT
     enc = subprocess.Popen([FFMPEG, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS),
                             "-i", "-", "-i", str(wav), "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
                             "-c:a", "aac", "-b:a", "160k", "-t", str(LENGTH), *METADATA, "-movflags", "+faststart", str(out)],

@@ -5,6 +5,10 @@ The 32.4 s recording is cut into the six lines at its pauses and played 1.1× fa
 `build_video.py` holds those cut points (`LINES`) and the scene timings that follow them. A new recording needs new cut points.
 Every frame carries a visible "AI-generated" watermark (top-right), as Space Apps requires for images and videos.
 
+`agroradar-reel.mp4`: the same 29 s story laid out for Reels / TikTok / Shorts (1080×1920). Text stays out of the
+bottom ~350 px and right ~140 px that those apps cover; the watermark sits top-centre. Stills: `scenes.html?reel#k1` …
+rendered at 1080×1920 into `frames_reel/`; build with `build_video.py reel`.
+
 ## Story
 
 | Time | Scene | Narration |

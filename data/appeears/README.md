@@ -10,7 +10,7 @@ date,layer,value,quality_ok
 2000-02-11,slope,14.2,1
 ```
 
-- `layer` can be `ndvi` (HLS 30 m or MODIS 250 m), `smap` (surface moisture, m³/m³) or `slope` (% derived from NASADEM; one row per pixel of the polygon).
+- `layer` can be `ndvi` (HLS 30 m or MODIS 250 m), `smap` (surface moisture 0-5 cm, m³/m³, daily mean of SMAP L4), `smap_rz` (root-zone moisture 0-100 cm, m³/m³) or `slope` (% derived from NASADEM; one row per pixel of the polygon).
 - `quality_ok` is 1 if the pixel passes the AppEEARS quality or cloud mask, and 0 if not. The 0 rows are dropped; if fewer than 30% remain valid, the evidence drops to C.
 - The exact AppEEARS product and layer names (for example, the NDVI band and its quality layer) are confirmed when the first file is downloaded; here the data is only normalized.
 

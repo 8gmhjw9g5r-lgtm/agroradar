@@ -45,7 +45,10 @@ the same result. This phase adds the per-zone data.
 - [x] Slope (NASADEM) downloaded and used (erosion now evidence B). Zone slope is the median of 9 points; points whose centre is at
   sea level are dropped. Median slope: San Miguel 3.2%, La Unión 27.7%, Chalatenango 12.2%.
 - [ ] La Unión's zone centre (13.34, -87.84) lies in the Gulf of Fonseca: move it inland and re-request that zone.
-- [ ] Moisture (SMAP): run `python -m backend.appeears download` again when `status` shows `done`.
+- [x] Moisture (SMAP L4) downloaded 2026-11-16: daily surface and root-zone means, 2015-03-31 to 2026-11-13, centre point only.
+  The API returns `soil_moisture_anomaly_sd` and `rootzone_moisture_anomaly_sd` (last 90 days against the same days in earlier years);
+  they are not in the index or on the page yet. La Unión reads about twice as wet as the other zones (root zone 0.32 vs 0.14 m³/m³),
+  most likely because its 9 km SMAP cell takes in the Gulf of Fonseca: another reason to move that centre inland.
 - [x] Page follows the AgroRadar design system (`design/`): palette B, Atkinson Hyperlegible, 8-pt spacing, logo.
 - [ ] **Soil saved in advance**: `python -m backend.soil` stores SoilGrids values per pilot zone in `data/soil/`; the app
   reads those files and never waits on SoilGrids live. Run it when SoilGrids is back up.
