@@ -40,8 +40,16 @@ def parse(raw, lat, lon):
     if missing:
         raise ValueError(f"POWER: missing parameters {missing}")
     fill = raw.get("header", {}).get("fill_value", -999.0)
+    days = sorted(par["PRECTOTCORR"])
+    ok = lambda f: all(par[p].get(f) not in (None, fill) for p in PARAMS)
+    # The newest days are often not processed yet (fill value): drop them from the end.
+    # A gap anywhere else is still an error.
+    while days and not ok(days[-1]):
+        days.pop()
+    if not days:
+        raise ValueError("POWER: no complete days in the response")
     daily = []
-    for f in sorted(par["PRECTOTCORR"]):
+    for f in days:
         row = {"date": f"{f[:4]}-{f[4:6]}-{f[6:]}"}
         for p, name in PARAMS.items():
             v = par[p].get(f)

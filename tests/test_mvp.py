@@ -96,6 +96,12 @@ class Layer2Contract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing value"):
             power.parse(self.raw, 13.5, -88.125)
 
+    def test_recent_days_not_ready(self):
+        # NASA leaves the newest days at -999 until they are processed: they are dropped, not an error
+        p = self.raw["properties"]["parameter"]["PRECTOTCORR"]
+        p[sorted(p)[-1]] = -999.0
+        self.assertEqual(len(power.parse(self.raw, 13.5, -88.125)["daily"]), 9)
+
     def test_cell_mismatch(self):
         with self.assertRaisesRegex(ValueError, "does not match"):
             power.parse(self.raw, 14.0, -88.125)
