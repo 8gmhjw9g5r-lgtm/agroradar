@@ -323,6 +323,17 @@
   footer { max-width:860px; margin:24px auto 0; padding:24px 16px 32px; border-top:1px solid var(--mist); text-align:center; font-size:13px; line-height:20px; color:var(--clay); }
   footer b { color:var(--evergreen); }
   footer .code { display:inline-block; margin-top:4px; color:var(--evergreen); font-weight:700; text-underline-offset:3px; }
+  /* share menu */
+  dialog.sheet { border:none; border-radius:var(--r-2xl); padding:24px; width:min(420px, calc(100vw - 32px)); background:var(--surface); color:var(--ink); box-shadow:var(--e4); }
+  dialog.sheet::backdrop { background:rgba(31,42,36,.45); }
+  .sheet .head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .sheet h3 { margin:0; font-size:20px; line-height:28px; }
+  .sheet .opts { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .sheet .opt { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 4px; min-height:auto; border-radius:var(--r-xl);
+                background:transparent; border:none; color:var(--ink); font-size:14px; line-height:18px; font-weight:700; text-decoration:none; text-align:center; cursor:pointer; }
+  .sheet .opt:hover { background:var(--lime-soft); }
+  .sheet .opt .ic { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; color:#fff; }
+  .sheet .opt[hidden] { display:none; }
   .toast { position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:2000; background:var(--evergreen); color:#fff; padding:10px 20px; border-radius:var(--pill); box-shadow:var(--e4); font-weight:700; }
 </style>
 </head>
@@ -484,6 +495,12 @@
     <div id="result"></div>
   </section>
 
+  <dialog id="share_sheet" class="sheet" aria-labelledby="share_title">
+    <div class="head"><h3 id="share_title" data-t="share_title"></h3>
+      <button type="button" class="tertiary small" id="share_close" data-t="close"></button></div>
+    <div class="opts" id="share_opts"></div>
+  </dialog>
+
   <div id="step_msg" role="status"></div>
   <div class="nav" id="nav">
     <button type="button" id="back" class="tertiary"></button>
@@ -513,6 +530,8 @@ const T = {
     sh_best: '✅ Opción recomendada: {r}, {i}/100 (rango {a}–{b})', sh_equal: '✅ Las tres rotaciones dan {i}/100 (rango {a}–{b})',
     sh_risk: '⚠️ Riesgo principal: {r} ({p}% de los años)', sh_rain: '🌧️ Lluvia: {mm} mm al año; suelen empezar alrededor del {d}',
     sh_try: 'Pruebe con su parcela:',
+    share_title: 'Compartir resultado', close: 'Cerrar', sh_email: 'Correo', sh_copy: 'Copiar texto', sh_more: 'Más apps',
+    sh_subject: 'Mi resultado de AgroRadar',
     s1_title: '¿Dónde está su parcela?',
     s1_why: 'Con ese punto traemos 35 años de lluvia y temperatura de la NASA para su zona exacta.',
     s1_g1: 'Acerque el mapa con el botón + (o con dos dedos) hasta reconocer su terreno.',
@@ -639,6 +658,8 @@ const T = {
     sh_best: '✅ Recommended option: {r}, {i}/100 (range {a}–{b})', sh_equal: '✅ All three rotations score {i}/100 (range {a}–{b})',
     sh_risk: '⚠️ Main risk: {r} ({p}% of years)', sh_rain: '🌧️ Rain: {mm} mm a year; it typically starts around {d}',
     sh_try: 'Try it with your plot:',
+    share_title: 'Share result', close: 'Close', sh_email: 'Email', sh_copy: 'Copy text', sh_more: 'More apps',
+    sh_subject: 'My AgroRadar result',
     s1_title: 'Where is your plot?',
     s1_why: 'With that point we fetch 35 years of NASA rain and temperature for your exact area.',
     s1_g1: 'Zoom in with the + button (or two fingers) until you recognise your land.',
@@ -779,6 +800,9 @@ const IC = {
   check: 'M5 12.5l4.5 4.5L19 7.5', info: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 11v5M12 8h.01',
   text: 'M5 6h14M5 11h14M5 16h9', eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
   share: 'M3 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0M15 6a3 3 0 1 0 6 0a3 3 0 1 0-6 0M15 18a3 3 0 1 0 6 0a3 3 0 1 0-6 0M8.6 10.5l6.8-3.9M8.6 13.5l6.8 3.9',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6', copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+  chat: 'M4 20l1.5-4.5A8 8 0 1 1 9 19.5zM9 10h6M9 13h4', send: 'M21 3L3 10.5l7 2.5 2.5 7zM21 3l-11 10',
+  dots: 'M5 12h.01M12 12h.01M19 12h.01',
   plus: 'M12 5v14M5 12h14', restart: 'M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4',
   slope0: 'M3 17h18', slope1: 'M3 18h18M3 18l18-4', slope2: 'M3 19h18M3 19l18-9', slope3: 'M3 20h18M3 20l14-15',
 };
@@ -1013,13 +1037,41 @@ $('share').onclick = async () => {
     return lines.join('\n');
   });
   const text = `AgroRadar\n\n${blocks.join('\n\n')}\n\n${tr('sh_try')} ${location.origin}`;
-  try {
-    if (navigator.share) { await navigator.share({title: 'AgroRadar', text}); return; }
-    await navigator.clipboard.writeText(text); toast(tr('shared'));
-  } catch (e) {
-    if (e && e.name === 'AbortError') return;  // the share sheet was closed
-    $('step_msg').innerHTML = `<div class="msg info" style="white-space:pre-wrap">${esc(text)}</div>`;  // copy by hand
-  }
+  // X allows 280 characters and Facebook only takes a link, so they get the first plot's headline
+  const short = `AgroRadar · ${blocks[0].split('\n').slice(0, 2).join(' · ')}`;
+  const url = location.origin, e = encodeURIComponent;
+  const opts = [
+    {k: 'WhatsApp', ic: 'chat', bg: '#1E8A4C', href: `https://wa.me/?text=${e(text)}`},
+    {k: 'Facebook', ic: 'share', bg: '#1A5FC8', href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`},
+    {k: 'X', ic: 'text', bg: '#1F2A24', href: `https://twitter.com/intent/tweet?text=${e(short)}&url=${e(url)}`},
+    {k: 'Telegram', ic: 'send', bg: '#1C7DB8', href: `https://t.me/share/url?url=${e(url)}&text=${e(text)}`},
+    {k: tr('sh_email'), ic: 'mail', bg: 'var(--clay)', href: `mailto:?subject=${e(tr('sh_subject'))}&body=${e(text)}`, self: true},
+    {k: tr('sh_copy'), ic: 'copy', bg: 'var(--evergreen)', act: 'copy'},
+  ];
+  if (navigator.share) opts.push({k: tr('sh_more'), ic: 'dots', bg: 'var(--leaf)', act: 'native'});
+  $('share_opts').innerHTML = opts.map((o, i) => o.href
+    ? `<a class="opt" href="${o.href}" ${o.self ? '' : 'target="_blank" rel="noopener"'} data-i="${i}"><span class="ic" style="background:${o.bg}">${icon(o.ic, 24)}</span>${esc(o.k)}</a>`
+    : `<button type="button" class="opt" data-i="${i}"><span class="ic" style="background:${o.bg}">${icon(o.ic, 24)}</span>${esc(o.k)}</button>`).join('');
+  $('share_opts').onclick = async ev => {
+    const el = ev.target.closest('.opt'); if (!el) return;
+    const o = opts[+el.dataset.i];
+    if (o.href) { $('share_sheet').close(); return; }  // the link opens the app or site
+    ev.preventDefault();
+    try {
+      if (o.act === 'native') { $('share_sheet').close(); await navigator.share({title: 'AgroRadar', text}); return; }
+      await navigator.clipboard.writeText(text); $('share_sheet').close(); toast(tr('shared'));
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;  // the phone's share menu was closed
+      $('share_sheet').close();
+      $('step_msg').innerHTML = `<div class="msg info" style="white-space:pre-wrap">${esc(text)}</div>`;  // copy by hand
+    }
+  };
+  $('share_sheet').showModal();
+};
+$('share_close').onclick = () => $('share_sheet').close();
+$('share_sheet').onclick = ev => {  // tap outside closes (the backdrop counts as the dialog itself)
+  const r = $('share_sheet').getBoundingClientRect();
+  if (ev.target === $('share_sheet') && (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom)) $('share_sheet').close();
 };
 
 async function compute() {
