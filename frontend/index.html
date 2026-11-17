@@ -328,7 +328,33 @@
   dialog.sheet::backdrop { background:rgba(31,42,36,.45); }
   .sheet .head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
   .sheet h3 { margin:0; font-size:20px; line-height:28px; }
-  .sheet .opts { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .sheet .opts { display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; }
+  .sheet h4 { grid-column:1 / -1; margin:8px 0 0; font-size:14px; line-height:20px; color:var(--clay); font-weight:700; }
+  .sheet h4:first-child { margin-top:0; }
+  .sheet .opt:disabled { opacity:.5; cursor:wait; background:transparent; }
+  @media (max-width:360px) { .sheet .opts { grid-template-columns:repeat(3, 1fr); } }
+  .print-only { display:none; }
+  @media print {
+    @page { margin:12mm; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { background:#fff; }
+    header { position:static; backdrop-filter:none; } header .lang, .nav, #progress, #step_msg, dialog, .toast, .tabs, .no-print { display:none !important; }
+    .step:not([data-step="5"]) { display:none !important; }
+    .print-only { display:block; margin:0 0 12px; font-size:13px; color:var(--clay); }
+    /* the screen banner and map buttons only take room on paper */
+    .step[data-step="5"] > .hero, .leaflet-control-zoom { display:none !important; }
+    main { padding-top:0; }
+    body { zoom:.82; }  /* screen sizes are generous; on paper this fits whole sections per page and leaves fewer gaps */
+    /* big cards may split across pages (else a card taller than a page jumps whole to the next one and
+       leaves the page before it empty); only the small blocks inside them stay together */
+    .card { box-shadow:none; border:1px solid var(--mist); padding:16px; margin-bottom:12px; }
+    .card h4 { margin-top:20px; }
+    h3, h4, h3 + .sub, h4 + .sub { break-after:avoid; break-inside:avoid; }
+    .summary, .fcard, .m, .risk, .land, .factor, .src, .fc, .vinfo > *, .legend-card, #map_slot_result, .print-only { break-inside:avoid; }
+    footer { break-before:avoid; margin-top:8px; padding-top:12px; }
+    .vinfo { grid-template-columns:repeat(3, 1fr); }  /* side by side, so the colour scale fits on the map's page */
+    footer .code::after { content:' (github.com/8gmhjw9g5r-lgtm/agroradar)'; font-weight:400; }
+  }
   .sheet .opt { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 4px; min-height:auto; border-radius:var(--r-xl);
                 background:transparent; border:none; color:var(--ink); font-size:14px; line-height:18px; font-weight:700; text-decoration:none; text-align:center; cursor:pointer; }
   .sheet .opt:hover { background:var(--lime-soft); }
@@ -525,12 +551,17 @@ const T = {
     how3_t: 'Vea su resultado', how3: 'La rotación recomendada, sus riesgos y el pronóstico de 7 días.',
     steps: ['Parcela', 'Siembra', 'Terreno', 'Prioridades', 'Resultados'],
     step_of: 'Paso {n} de 4', kicker5: 'Resultados',
-    why_label: '¿Por qué preguntamos esto?', back: 'Atrás', next: 'Siguiente', compute: 'Calcular', edit: 'Cambiar respuestas', restart: 'Empezar de nuevo', share: 'Compartir',
+    why_label: '¿Por qué preguntamos esto?', back: 'Atrás', next: 'Siguiente', compute: 'Calcular', edit: 'Cambiar respuestas', restart: 'Empezar de nuevo', share: 'Compartir informe',
     shared: 'Resultado copiado: péguelo en un mensaje', sh_plot: '📍 Parcela {p} · {s}',
     sh_best: '✅ Opción recomendada: {r}, {i}/100 (rango {a}–{b})', sh_equal: '✅ Las tres rotaciones dan {i}/100 (rango {a}–{b})',
     sh_risk: '⚠️ Riesgo principal: {r} ({p}% de los años)', sh_rain: '🌧️ Lluvia: {mm} mm al año; suelen empezar alrededor del {d}',
     sh_try: 'Pruebe con su parcela:',
-    share_title: 'Compartir resultado', close: 'Cerrar', sh_email: 'Correo', sh_copy: 'Copiar texto', sh_more: 'Más apps',
+    share_title: 'Compartir informe', close: 'Cerrar', sh_email: 'Correo', sh_copy: 'Copiar texto', sh_more: 'Más apps',
+    sh_send: 'Enviar o publicar', sh_save: 'Guardar el informe completo', sh_pdf: 'PDF', sh_png: 'Diapositivas (PNG)', sh_making: 'Preparando las diapositivas…',
+    sh_saved_for: 'Imagen guardada: publíquela desde la app de {app}', sh_img_fail: 'No se pudo crear la imagen; pruebe con PDF',
+    card_reco: 'Opción recomendada', card_equal: 'Las tres rotaciones dan igual', card_score: 'Éxito estimado de la cosecha',
+    card_likely: 'Lo más probable: entre {a} y {b}', card_data: 'Datos de la NASA · Pruébelo con su parcela',
+    print_head: 'Informe de AgroRadar generado el {d} · agroradar.space',
     sh_subject: 'Mi resultado de AgroRadar',
     s1_title: '¿Dónde está su parcela?',
     s1_why: 'Con ese punto traemos 35 años de lluvia y temperatura de la NASA para su zona exacta.',
@@ -653,12 +684,17 @@ const T = {
     how3_t: 'See your result', how3: 'The recommended rotation, its risks and the 7-day forecast.',
     steps: ['Plot', 'Planting', 'Land', 'Priorities', 'Results'],
     step_of: 'Step {n} of 4', kicker5: 'Results',
-    why_label: 'Why do we ask this?', back: 'Back', next: 'Next', compute: 'Calculate', edit: 'Change answers', restart: 'Start again', share: 'Share',
+    why_label: 'Why do we ask this?', back: 'Back', next: 'Next', compute: 'Calculate', edit: 'Change answers', restart: 'Start again', share: 'Share report',
     shared: 'Result copied: paste it into a message', sh_plot: '📍 Plot {p} · {s}',
     sh_best: '✅ Recommended option: {r}, {i}/100 (range {a}–{b})', sh_equal: '✅ All three rotations score {i}/100 (range {a}–{b})',
     sh_risk: '⚠️ Main risk: {r} ({p}% of years)', sh_rain: '🌧️ Rain: {mm} mm a year; it typically starts around {d}',
     sh_try: 'Try it with your plot:',
-    share_title: 'Share result', close: 'Close', sh_email: 'Email', sh_copy: 'Copy text', sh_more: 'More apps',
+    share_title: 'Share report', close: 'Close', sh_email: 'Email', sh_copy: 'Copy text', sh_more: 'More apps',
+    sh_send: 'Send or post', sh_save: 'Save the full report', sh_pdf: 'PDF', sh_png: 'Slides (PNG)', sh_making: 'Preparing the slides…',
+    sh_saved_for: 'Image saved: post it from the {app} app', sh_img_fail: 'Could not create the image; try PDF',
+    card_reco: 'Recommended option', card_equal: 'All three rotations score the same', card_score: 'Harvest estimated success rate',
+    card_likely: 'Most likely: between {a} and {b}', card_data: 'NASA data · Try it with your plot',
+    print_head: 'AgroRadar report generated on {d} · agroradar.space',
     sh_subject: 'My AgroRadar result',
     s1_title: 'Where is your plot?',
     s1_why: 'With that point we fetch 35 years of NASA rain and temperature for your exact area.',
@@ -803,6 +839,9 @@ const IC = {
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6', copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   chat: 'M4 20l1.5-4.5A8 8 0 1 1 9 19.5zM9 10h6M9 13h4', send: 'M21 3L3 10.5l7 2.5 2.5 7zM21 3l-11 10',
   dots: 'M5 12h.01M12 12h.01M19 12h.01',
+  briefcase: 'M3 8h18v12H3zM8 8V5h8v3M3 13h18', camera: 'M3 7h18v13H3zM8 7l2-3h4l2 3M8.5 13.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0',
+  note: 'M9 17a3 3 0 1 1-3-3h3V4c1.5 2.5 4 4 7 4', file: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6',
+  image: 'M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M15.5 9.5h.01',
   plus: 'M12 5v14M5 12h14', restart: 'M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4',
   slope0: 'M3 17h18', slope1: 'M3 18h18M3 18l18-4', slope2: 'M3 19h18M3 19l18-9', slope3: 'M3 20h18M3 20l14-15',
 };
@@ -1040,31 +1079,54 @@ $('share').onclick = async () => {
   // X allows 280 characters and Facebook only takes a link, so they get the first plot's headline
   const short = `AgroRadar · ${blocks[0].split('\n').slice(0, 2).join(' · ')}`;
   const url = location.origin, e = encodeURIComponent;
-  const opts = [
+  const card = summaryCard(last).catch(() => null);  // drawn now so phones still count the tap when sharing it
+  const social = app => async () => {  // Instagram and TikTok take no links or text from websites, only photos
+    const blob = await card; if (!blob) throw new Error(tr('sh_img_fail'));
+    const f = new File([blob], 'agroradar.png', {type: 'image/png'});
+    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], text: short + ' ' + url}); return; }
+    saveBlob(blob, 'agroradar.png'); toast(fill('sh_saved_for', {app}));
+  };
+  const send = [
     {k: 'WhatsApp', ic: 'chat', bg: '#1E8A4C', href: `https://wa.me/?text=${e(text)}`},
     {k: 'Facebook', ic: 'share', bg: '#1A5FC8', href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`},
+    {k: 'Instagram', ic: 'camera', bg: '#B1306E', run: social('Instagram')},
+    {k: 'TikTok', ic: 'note', bg: '#1F2A24', run: social('TikTok')},
+    {k: 'LinkedIn', ic: 'briefcase', bg: '#0A66C2', href: `https://www.linkedin.com/sharing/share-offsite/?url=${e(url)}`},
     {k: 'X', ic: 'text', bg: '#1F2A24', href: `https://twitter.com/intent/tweet?text=${e(short)}&url=${e(url)}`},
     {k: 'Telegram', ic: 'send', bg: '#1C7DB8', href: `https://t.me/share/url?url=${e(url)}&text=${e(text)}`},
     {k: tr('sh_email'), ic: 'mail', bg: 'var(--clay)', href: `mailto:?subject=${e(tr('sh_subject'))}&body=${e(text)}`, self: true},
-    {k: tr('sh_copy'), ic: 'copy', bg: 'var(--evergreen)', act: 'copy'},
+    {k: tr('sh_copy'), ic: 'copy', bg: 'var(--evergreen)', run: async () => { await navigator.clipboard.writeText(text); toast(tr('shared')); }},
   ];
-  if (navigator.share) opts.push({k: tr('sh_more'), ic: 'dots', bg: 'var(--leaf)', act: 'native'});
-  $('share_opts').innerHTML = opts.map((o, i) => o.href
+  if (navigator.share) send.push({k: tr('sh_more'), ic: 'dots', bg: 'var(--leaf)', run: () => navigator.share({title: 'AgroRadar', text})});
+  const save = [
+    {k: tr('sh_pdf'), ic: 'file', bg: '#B3261E', run: printReport},
+    {k: tr('sh_png'), ic: 'image', bg: 'var(--sky)', run: async () => {
+      toast(tr('sh_making'));
+      const blobs = await reportSlides(), name = fileName();
+      const files = blobs.map((b, i) => new File([b], `${name}-${String(i + 1).padStart(2, '0')}.png`, {type: 'image/png'}));
+      if (navigator.canShare && navigator.canShare({files})) { try { await navigator.share({files}); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      const JSZip = await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip');
+      const zip = new JSZip(); files.forEach(f => zip.file(f.name, f));
+      saveBlob(await zip.generateAsync({type: 'blob'}), name + '.zip');  // one download instead of one per slide
+    }},
+  ];
+  const opts = [...send, ...save];
+  const btn = (o, i) => o.href
     ? `<a class="opt" href="${o.href}" ${o.self ? '' : 'target="_blank" rel="noopener"'} data-i="${i}"><span class="ic" style="background:${o.bg}">${icon(o.ic, 24)}</span>${esc(o.k)}</a>`
-    : `<button type="button" class="opt" data-i="${i}"><span class="ic" style="background:${o.bg}">${icon(o.ic, 24)}</span>${esc(o.k)}</button>`).join('');
+    : `<button type="button" class="opt" data-i="${i}"><span class="ic" style="background:${o.bg}">${icon(o.ic, 24)}</span>${esc(o.k)}</button>`;
+  $('share_opts').innerHTML = `<h4>${n('sh_send')}</h4>${send.map(btn).join('')}<h4>${n('sh_save')}</h4>${save.map((o, i) => btn(o, send.length + i)).join('')}`;
   $('share_opts').onclick = async ev => {
     const el = ev.target.closest('.opt'); if (!el) return;
     const o = opts[+el.dataset.i];
     if (o.href) { $('share_sheet').close(); return; }  // the link opens the app or site
-    ev.preventDefault();
-    try {
-      if (o.act === 'native') { $('share_sheet').close(); await navigator.share({title: 'AgroRadar', text}); return; }
-      await navigator.clipboard.writeText(text); $('share_sheet').close(); toast(tr('shared'));
-    } catch (err) {
+    ev.preventDefault(); el.disabled = true;
+    try { await o.run(); $('share_sheet').close(); }
+    catch (err) {
       if (err && err.name === 'AbortError') return;  // the phone's share menu was closed
       $('share_sheet').close();
-      $('step_msg').innerHTML = `<div class="msg info" style="white-space:pre-wrap">${esc(text)}</div>`;  // copy by hand
-    }
+      if (o.k === tr('sh_copy')) $('step_msg').innerHTML = `<div class="msg info" style="white-space:pre-wrap">${esc(text)}</div>`;  // copy by hand
+      else toast(err.message || tr('sh_img_fail'));
+    } finally { el.disabled = false; }
   };
   $('share_sheet').showModal();
 };
@@ -1073,6 +1135,107 @@ $('share_sheet').onclick = ev => {  // tap outside closes (the backdrop counts a
   const r = $('share_sheet').getBoundingClientRect();
   if (ev.target === $('share_sheet') && (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom)) $('share_sheet').close();
 };
+
+// --- saving the report: PDF through the browser's print dialog (real, selectable text), PNG through html2canvas ---
+const fileName = () => `AgroRadar-${last.plots.map(p => p.plot_id).join('-')}-${new Date().toISOString().slice(0, 10)}`;
+function saveBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function printReport() {
+  const title = document.title; document.title = fileName();  // the PDF's default file name
+  addEventListener('afterprint', () => { document.title = title; }, {once: true});
+  $('share_sheet').close(); setTimeout(() => window.print(), 100);
+}
+const scripts = {};
+function loadScript(src, global) {
+  return scripts[src] ||= new Promise((ok, fail) => {
+    const s = document.createElement('script'); s.src = src;
+    s.onload = () => ok(window[global]); s.onerror = () => { delete scripts[src]; fail(new Error(tr('sh_img_fail'))); };
+    document.head.appendChild(s);
+  });
+}
+// Slides: 1080x1350 pages (Instagram carousel size). Page 1 is the summary card; the report is drawn once at a
+// fixed width and cut between whole blocks (sections, cards, metric boxes), never through the middle of one.
+async function reportSlides() {
+  const html2canvas = await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', 'html2canvas');
+  const SW = 1080, SH = 1350, M = 48, HEAD = 128, FOOT = 96, CSSW = 760, k = (SW - 2 * M) / CSSW, maxH = (SH - HEAD - FOOT) / k;
+  let cuts = [], total = 0;
+  const shot = await html2canvas($('result'), {scale: k, useCORS: true, backgroundColor: '#FAF9F4', logging: false, windowWidth: 1024,
+    ignoreElements: x => x.classList?.contains('tabs') || x.classList?.contains('print-only') || x.classList?.contains('leaflet-control-zoom'),
+    onclone: doc => {
+      const r = doc.getElementById('result'); r.style.width = CSSW + 'px';
+      const top = r.getBoundingClientRect().top;
+      const y = el => el.getBoundingClientRect().top - top;
+      const strong = new Set([...r.querySelectorAll('.card, .card > h3, .card h4')].map(y).map(Math.round));
+      const all = [...r.querySelectorAll('.card, .card h4, .summary, .fcard, .legend-note, .metrics > *, .m, .risk, .land, .factor, .src, .fc, .good-def, #map_slot_result, .vinfo > *, .card > p')];
+      cuts = [...new Set(all.map(y).map(Math.round))].map(v => ({v, strong: strong.has(v)}));
+      // a block right under a heading is not a place to cut: the heading would end up alone at the bottom
+      const heads = [...r.querySelectorAll('.card h4, .card > h3')].map(h => {  // the heading, its subtitle and a margin
+        const sub = h.nextElementSibling?.classList.contains('sub') ? h.nextElementSibling : h;
+        return [y(h), y(sub) + sub.offsetHeight + 24];
+      });
+      cuts = cuts.filter(c => c.strong || !heads.some(([a, b]) => c.v > a && c.v <= b)).sort((a, b) => a.v - b.v);
+      total = r.scrollHeight;
+    }});
+  // A slide may shrink its content by up to 20% when that keeps a whole section (up to the next heading or card) together.
+  const pages = [], stretch = maxH * 1.2; let s = 0;
+  while (s < total - 4) {
+    const fit = cuts.filter(c => c.v > s + 40 && c.v - s <= maxH);
+    const strongFit = cuts.filter(c => c.strong && c.v > s + 40 && c.v - s <= stretch && c.v - s >= maxH * 0.55);
+    const e = total - s <= stretch ? total : (strongFit.at(-1) || fit.at(-1) || {v: s + maxH}).v;
+    pages.push([s, e]); s = e;
+  }
+  const logo = await loadImg('/assets/logo.png'), N = pages.length + 1;
+  const frame = (g, i) => {
+    g.fillStyle = '#FAF9F4'; g.fillRect(0, 0, SW, SH);
+    g.drawImage(logo, M, 40, 180, 60);
+    g.fillStyle = '#5A544B'; g.font = '400 28px "Atkinson Hyperlegible", sans-serif'; g.textAlign = 'right';
+    g.fillText(`${i} / ${N}`, SW - M, 82); g.textAlign = 'left';
+    g.fillStyle = '#185C3B'; g.fillRect(0, SH - FOOT + 24, SW, FOOT - 24);
+    g.fillStyle = '#FFFFFF'; g.font = '700 30px "Atkinson Hyperlegible", sans-serif'; g.fillText('agroradar.space', M, SH - 26);
+  };
+  const out = [await summaryCard(last)];
+  for (const [i, [a, b]] of pages.entries()) {
+    const c = document.createElement('canvas'); c.width = SW; c.height = SH; const g = c.getContext('2d');
+    frame(g, i + 2);
+    const f = Math.min(1, maxH / (b - a)), w = shot.width * f, h = (b - a) * k * f;
+    g.drawImage(shot, 0, a * k, shot.width, (b - a) * k, M + (shot.width - w) / 2, HEAD, w, h);
+    out.push(await new Promise(ok => c.toBlob(ok, 'image/png')));
+  }
+  return out;
+}
+const loadImg = src => new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
+// A 1080x1350 (4:5) summary card for Instagram and TikTok, drawn directly so it needs no library.
+async function summaryCard(d) {
+  await document.fonts.ready;
+  const p = d.plots[0], {best, differs} = bestOf(p), dec = p.terrain_profile.climate.last_decade || p.terrain_profile.climate;
+  const top = p.risks.filter(r => !RELATIVE_RISKS.includes(r.event)).sort((a, b) => b.p - a.p)[0];
+  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'), F = (w, s) => `${w} ${s}px "Atkinson Hyperlegible", sans-serif`;
+  const wrap = (txt, x, y, max, lh) => { let line = ''; for (const w of txt.split(' ')) { const t2 = line ? line + ' ' + w : w;
+    if (g.measureText(t2).width > max && line) { g.fillText(line, x, y); y += lh; line = w; } else line = t2; } g.fillText(line, x, y); return y + lh; };
+  g.fillStyle = '#FAF9F4'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#185C3B'; g.fillRect(0, H - 150, W, 150);
+  g.drawImage(await loadImg('/assets/logo.png'), 80, 80, 306, 102);
+  g.fillStyle = '#5A544B'; g.font = F(400, 36);
+  g.fillText(fill('sh_plot', {p: p.plot_id, s: tr(p.season + '_short')}).replace('📍 ', ''), 80, 270);
+  g.fillStyle = '#185C3B'; g.font = F(700, 40); g.fillText(n(differs ? 'card_reco' : 'card_equal'), 80, 360);
+  let y = 440;
+  if (best && differs) { g.fillStyle = '#1F2A24'; g.font = F(700, 64); y = wrap(tr(best.id), 80, y, W - 160, 76); }
+  if (best) {
+    g.fillStyle = '#5A544B'; g.font = F(400, 34); g.fillText(n('card_score'), 80, y + 40);
+    g.fillStyle = '#185C3B'; g.font = F(700, 200); g.fillText(String(best.index), 72, y + 230);
+    const w = g.measureText(String(best.index)).width; g.font = F(400, 56); g.fillStyle = '#5A544B'; g.fillText('/100', 90 + w, y + 230);
+    g.font = F(400, 34); g.fillText(fill('card_likely', {a: best.range_80[0], b: best.range_80[1]}), 80, y + 300); y += 380;
+  }
+  g.fillStyle = '#1F2A24'; g.font = F(400, 36);
+  if (top) y = wrap(fill('sh_risk', {r: tr(top.event), p: Math.round(top.p * 100)}).replace(/^\S+\s/, '• '), 80, y, W - 160, 50);
+  wrap(fill('sh_rain', {mm: dec.mean_annual_rain_mm.toLocaleString(loc()), d: dec.median_rain_onset ? fmtMD(dec.median_rain_onset) : '–'}).replace(/^\S+\s/, '• '), 80, y + 10, W - 160, 50);
+  g.fillStyle = '#FFFFFF'; g.font = F(700, 44); g.fillText('agroradar.space', 80, H - 82);
+  g.font = F(400, 30); g.fillText(n('card_data'), 80, H - 38);
+  return new Promise(ok => c.toBlob(ok, 'image/png'));
+}
 
 async function compute() {
   const prios = [...document.querySelectorAll('[name=prio]:checked')].map(x => x.value);
@@ -1246,7 +1409,8 @@ function plotCard(p, pi, d) {
 
 function render(d) {
   placeMap('map_slot_plot');  // park the map before the results are redrawn
-  let h = d.lang !== lang ? `<div class="msg info">${n('relang')}</div>` : '';
+  let h = `<p class="print-only">${esc(fill('print_head', {d: new Date().toLocaleDateString(loc(), {day: 'numeric', month: 'long', year: 'numeric'})}))}</p>`;
+  h += d.lang !== lang ? `<div class="msg info">${n('relang')}</div>` : '';
   h += d.warnings.map(a => `<div class="msg warning">${esc(a)}</div>`).join('');
   if (d.explanation) h += `<div class="card">${cardHead('text', n('explanation'))}<div id="explanation"></div>${d.agent_warnings.map(a => `<p class="alert"><small>${esc(a)}</small></p>`).join('')}</div>`;
   if (d.ranking.length > 1) h += `<div class="card">${cardHead('target', n('ranking'))}<ol>${d.ranking.map(r => `<li>${esc(r.plot_id)} — ${n('weigh_most')}: ${r.why.map(n).join(' ' + n('and') + ' ')}</li>`).join('')}</ol></div>`;
