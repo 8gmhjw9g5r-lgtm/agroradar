@@ -332,6 +332,7 @@
   .sheet h4 { grid-column:1 / -1; margin:8px 0 0; font-size:14px; line-height:20px; color:var(--clay); font-weight:700; }
   .sheet h4:first-child { margin-top:0; }
   .sheet .opt:disabled { opacity:.5; cursor:wait; background:transparent; }
+  .sheet .opt.again { background:var(--lime-soft); box-shadow:inset 0 0 0 2px var(--evergreen); color:var(--evergreen); }
   @media (max-width:360px) { .sheet .opts { grid-template-columns:repeat(3, 1fr); } }
   .print-only { display:none; }
   @media print {
@@ -557,7 +558,7 @@ const T = {
     sh_risk: '⚠️ Riesgo principal: {r} ({p}% de los años)', sh_rain: '🌧️ Lluvia: {mm} mm al año; suelen empezar alrededor del {d}',
     sh_try: 'Pruebe con su parcela:',
     share_title: 'Compartir informe', close: 'Cerrar', sh_email: 'Correo', sh_copy: 'Copiar texto', sh_more: 'Más apps',
-    sh_send: 'Enviar o publicar', sh_save: 'Guardar el informe completo', sh_pdf: 'PDF', sh_png: 'Diapositivas (PNG)', sh_making: 'Preparando las diapositivas…',
+    sh_send: 'Enviar o publicar', sh_save: 'Guardar el informe completo', sh_pdf: 'PDF', sh_png: 'Imágenes (PNG)', sh_making: 'Preparando…', sh_tap: 'Toque para compartir', sh_zip: 'Imágenes guardadas (archivo ZIP)',
     sh_saved_for: 'Imagen guardada: publíquela desde la app de {app}', sh_img_fail: 'No se pudo crear la imagen; pruebe con PDF',
     card_reco: 'Opción recomendada', card_equal: 'Las tres rotaciones dan igual', card_score: 'Éxito estimado de la cosecha',
     card_likely: 'Lo más probable: entre {a} y {b}', card_data: 'Datos de la NASA · Pruébelo con su parcela',
@@ -690,7 +691,7 @@ const T = {
     sh_risk: '⚠️ Main risk: {r} ({p}% of years)', sh_rain: '🌧️ Rain: {mm} mm a year; it typically starts around {d}',
     sh_try: 'Try it with your plot:',
     share_title: 'Share report', close: 'Close', sh_email: 'Email', sh_copy: 'Copy text', sh_more: 'More apps',
-    sh_send: 'Send or post', sh_save: 'Save the full report', sh_pdf: 'PDF', sh_png: 'Slides (PNG)', sh_making: 'Preparing the slides…',
+    sh_send: 'Send or post', sh_save: 'Save the full report', sh_pdf: 'PDF', sh_png: 'Images (PNG)', sh_making: 'Preparing…', sh_tap: 'Tap to share', sh_zip: 'Images saved (ZIP file)',
     sh_saved_for: 'Image saved: post it from the {app} app', sh_img_fail: 'Could not create the image; try PDF',
     card_reco: 'Recommended option', card_equal: 'All three rotations score the same', card_score: 'Harvest estimated success rate',
     card_likely: 'Most likely: between {a} and {b}', card_data: 'NASA data · Try it with your plot',
@@ -1079,13 +1080,39 @@ $('share').onclick = async () => {
   // X allows 280 characters and Facebook only takes a link, so they get the first plot's headline
   const short = `AgroRadar · ${blocks[0].split('\n').slice(0, 2).join(' · ')}`;
   const url = location.origin, e = encodeURIComponent;
-  const card = summaryCard(last).catch(() => null);  // drawn now so phones still count the tap when sharing it
-  const social = app => async () => {  // Instagram and TikTok take no links or text from websites, only photos
-    const blob = await card; if (!blob) throw new Error(tr('sh_img_fail'));
-    const f = new File([blob], 'agroradar.png', {type: 'image/png'});
-    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], text: short + ' ' + url}); return; }
-    saveBlob(blob, 'agroradar.png'); toast(fill('sh_saved_for', {app}));
+  // Phones only let a page share right after a tap, and the images take a moment to draw. So they are drawn as soon
+  // as this menu opens; a tap that finds them ready shares at once, otherwise the button asks for one more tap.
+  const ready = {};
+  const prep = (key, make) => make().then(v => { ready[key] = v; }).catch(err => { ready[key] = err; });
+  const cardP = prep('card', async () => [new File([await summaryCard(last)], 'agroradar.png', {type: 'image/png'})]);
+  const pngP = prep('png', async () => (await reportSlides()).map((b, i) =>
+    new File([b], `${fileName()}-${String(i + 1).padStart(2, '0')}.png`, {type: 'image/png'})));
+  const canShareFiles = files => !!(navigator.canShare && navigator.canShare({files}));
+  const shareFiles = (key, promise, save, extra = {}) => async el => {
+    let files = ready[key];
+    if (!files) {  // not drawn yet: wait, then ask for a fresh tap if the phone needs one
+      const label = el.lastChild.textContent; el.lastChild.textContent = tr('sh_making');
+      await promise; files = ready[key]; el.lastChild.textContent = label;
+      if (files instanceof Error) throw files;
+      if (canShareFiles(files)) { el.lastChild.textContent = tr('sh_tap'); el.classList.add('again'); return 'keep'; }
+      return save(files);
+    }
+    if (files instanceof Error) throw files;
+    if (canShareFiles(files)) {
+      try { return await navigator.share({files, ...extra}); }
+      catch (err) { if (err.name !== 'NotAllowedError') throw err; }  // the phone refused anyway: save instead
+    }
+    return save(files);
   };
+  const saveZip = async files => {
+    if (files.length === 1) { saveBlob(files[0], files[0].name); return; }
+    const JSZip = await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip');
+    const zip = new JSZip(); files.forEach(f => zip.file(f.name, f));
+    saveBlob(await zip.generateAsync({type: 'blob'}), fileName() + '.zip'); toast(tr('sh_zip'));  // one download, not one per image
+  };
+  // Instagram and TikTok take no links or text from websites, only photos
+  const social = app => shareFiles('card', cardP, files => { saveBlob(files[0], files[0].name); toast(fill('sh_saved_for', {app})); },
+                                   {text: short + ' ' + url});
   const send = [
     {k: 'WhatsApp', ic: 'chat', bg: '#1E8A4C', href: `https://wa.me/?text=${e(text)}`},
     {k: 'Facebook', ic: 'share', bg: '#1A5FC8', href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`},
@@ -1100,15 +1127,7 @@ $('share').onclick = async () => {
   if (navigator.share) send.push({k: tr('sh_more'), ic: 'dots', bg: 'var(--leaf)', run: () => navigator.share({title: 'AgroRadar', text})});
   const save = [
     {k: tr('sh_pdf'), ic: 'file', bg: '#B3261E', run: printReport},
-    {k: tr('sh_png'), ic: 'image', bg: 'var(--sky)', run: async () => {
-      toast(tr('sh_making'));
-      const blobs = await reportSlides(), name = fileName();
-      const files = blobs.map((b, i) => new File([b], `${name}-${String(i + 1).padStart(2, '0')}.png`, {type: 'image/png'}));
-      if (navigator.canShare && navigator.canShare({files})) { try { await navigator.share({files}); return; } catch (e) { if (e.name === 'AbortError') return; } }
-      const JSZip = await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip');
-      const zip = new JSZip(); files.forEach(f => zip.file(f.name, f));
-      saveBlob(await zip.generateAsync({type: 'blob'}), name + '.zip');  // one download instead of one per slide
-    }},
+    {k: tr('sh_png'), ic: 'image', bg: 'var(--sky)', run: shareFiles('png', pngP, saveZip)},
   ];
   const opts = [...send, ...save];
   const btn = (o, i) => o.href
@@ -1119,8 +1138,8 @@ $('share').onclick = async () => {
     const el = ev.target.closest('.opt'); if (!el) return;
     const o = opts[+el.dataset.i];
     if (o.href) { $('share_sheet').close(); return; }  // the link opens the app or site
-    ev.preventDefault(); el.disabled = true;
-    try { await o.run(); $('share_sheet').close(); }
+    ev.preventDefault(); el.disabled = true; el.classList.remove('again');
+    try { if (await o.run(el) !== 'keep') $('share_sheet').close(); }
     catch (err) {
       if (err && err.name === 'AbortError') return;  // the phone's share menu was closed
       $('share_sheet').close();
@@ -1195,15 +1214,15 @@ async function reportSlides() {
     g.fillStyle = '#185C3B'; g.fillRect(0, SH - FOOT + 24, SW, FOOT - 24);
     g.fillStyle = '#FFFFFF'; g.font = '700 30px "Atkinson Hyperlegible", sans-serif'; g.fillText('agroradar.space', M, SH - 26);
   };
-  const out = [await summaryCard(last)];
+  const out = [summaryCard(last)];  // PNG encoding is slow, so all pages are encoded at the same time
   for (const [i, [a, b]] of pages.entries()) {
     const c = document.createElement('canvas'); c.width = SW; c.height = SH; const g = c.getContext('2d');
     frame(g, i + 2);
     const f = Math.min(1, maxH / (b - a)), w = shot.width * f, h = (b - a) * k * f;
     g.drawImage(shot, 0, a * k, shot.width, (b - a) * k, M + (shot.width - w) / 2, HEAD, w, h);
-    out.push(await new Promise(ok => c.toBlob(ok, 'image/png')));
+    out.push(new Promise(ok => c.toBlob(ok, 'image/png')));
   }
-  return out;
+  return Promise.all(out);
 }
 const loadImg = src => new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
 // A 1080x1350 (4:5) summary card for Instagram and TikTok, drawn directly so it needs no library.
